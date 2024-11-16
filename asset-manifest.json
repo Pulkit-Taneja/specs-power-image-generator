@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/specs-power-image-generator/static/css/main.5af788c8.css",
-    "main.js": "/specs-power-image-generator/static/js/main.798d6a1c.js",
+    "main.css": "/specs-power-image-generator/static/css/main.366471de.css",
+    "main.js": "/specs-power-image-generator/static/js/main.06a83cdd.js",
     "static/js/453.c44e60fd.chunk.js": "/specs-power-image-generator/static/js/453.c44e60fd.chunk.js",
     "index.html": "/specs-power-image-generator/index.html",
-    "main.5af788c8.css.map": "/specs-power-image-generator/static/css/main.5af788c8.css.map",
-    "main.798d6a1c.js.map": "/specs-power-image-generator/static/js/main.798d6a1c.js.map",
+    "main.366471de.css.map": "/specs-power-image-generator/static/css/main.366471de.css.map",
+    "main.06a83cdd.js.map": "/specs-power-image-generator/static/js/main.06a83cdd.js.map",
     "453.c44e60fd.chunk.js.map": "/specs-power-image-generator/static/js/453.c44e60fd.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.5af788c8.css",
-    "static/js/main.798d6a1c.js"
+    "static/css/main.366471de.css",
+    "static/js/main.06a83cdd.js"
   ]
 }
