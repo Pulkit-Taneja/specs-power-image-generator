@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/specs-power-image-generator/static/css/main.9448882f.css",
+    "main.css": "/specs-power-image-generator/static/css/main.1bfc91a4.css",
     "main.js": "/specs-power-image-generator/static/js/main.bb56a319.js",
     "static/js/453.c44e60fd.chunk.js": "/specs-power-image-generator/static/js/453.c44e60fd.chunk.js",
     "index.html": "/specs-power-image-generator/index.html",
-    "main.9448882f.css.map": "/specs-power-image-generator/static/css/main.9448882f.css.map",
+    "main.1bfc91a4.css.map": "/specs-power-image-generator/static/css/main.1bfc91a4.css.map",
     "main.bb56a319.js.map": "/specs-power-image-generator/static/js/main.bb56a319.js.map",
     "453.c44e60fd.chunk.js.map": "/specs-power-image-generator/static/js/453.c44e60fd.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.9448882f.css",
+    "static/css/main.1bfc91a4.css",
     "static/js/main.bb56a319.js"
   ]
 }
