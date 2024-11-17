@@ -39,9 +39,35 @@
 
 /* General Styles */
 * {
-  margin: 0;
+  margin: 0.2em;
   padding: 0;
   box-sizing: border-box;
+}
+
+
+#copy-btn-container {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+}
+
+#copy-addition-btn {
+  width: 40%;
+  padding: 6px 1px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+  margin-bottom: 20px;
+}
+
+#lens-desc-container {
+  margin-top: 20px;
+}
+
+.power-input-lr-span {
+  margin-top: 0.9em;
 }
 
 body {
@@ -53,7 +79,10 @@ body {
 .container {
   max-width: 600px;
   margin: 20px auto;
-  padding: 20px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 6px;
+  padding-right: 6px;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -61,7 +90,7 @@ body {
 
 h1 {
   text-align: center;
-  font-size: 24px;
+  font-size: 30px;
   margin-bottom: 20px;
 }
 
@@ -77,6 +106,7 @@ form {
 input[type="number"],
 input[type="text"],
 textarea {
+  font-size: 20px;
   width: 100%;
   padding: 10px;
   margin-top: 5px;
@@ -115,7 +145,7 @@ button:hover {
 
 .row span {
   flex: 1;
-  font-size: 16px;
+  font-size: 20px;
 }
 
 .row input {
@@ -123,23 +153,30 @@ button:hover {
 }
 
 .share-section {
+  padding: 0;
+  border: 1px solid black;
   text-align: center;
 }
 
 .image-preview {
-  margin-top: 20px;
+  margin: 0;
   max-width: 100%;
   height: auto;
 }
 
+label {
+  font-size: 18px;
+}
+
 /* Mobile Responsiveness */
-@media (max-width: 400px) {
+@media (max-width: 350px) {
   .container {
     padding: 15px;
   }
 
+
   h1 {
-    font-size: 20px;
+    font-size: 25px;
   }
 
   .row {
@@ -148,7 +185,7 @@ button:hover {
   }
 
   .row span {
-    font-size: 14px;
+    font-size: 18px;
     margin-bottom: 5px;
   }
 
@@ -158,10 +195,69 @@ button:hover {
 
   button {
     padding: 12px;
-    font-size: 14px;
+    font-size: 18px;
   }
 
   .image-preview {
     max-width: 90%;
   }
+
 }
+
+/* Input Group Styling */
+.input-group-special {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+}
+
+/* Custom Checkbox Wrapper */
+.custom-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  font-size: 18px;
+  cursor: pointer;
+  gap: 8px; /* Spacing between text and checkbox */
+}
+
+/* Hide the default checkbox */
+.custom-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Custom Checkbox Design */
+.custom-checkbox .checkmark {
+  width: 20px;
+  height: 20px;
+  background-color: #ccc;
+  border-radius: 4px; /* Rounded corners */
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+/* Checkmark Indicator (Tick) */
+.custom-checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* When Checkbox is Checked */
+.custom-checkbox input[type="checkbox"]:checked + .checkmark {
+  background-color: #007BFF; /* Blue background when checked */
+}
+
+.custom-checkbox input[type="checkbox"]:checked + .checkmark:after {
+  display: block; /* Show the tick */
+}
+
