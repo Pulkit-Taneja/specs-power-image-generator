@@ -45,7 +45,7 @@
 }
 
 
-#copy-btn-container {
+.center-content-container {
   display: flex;
   justify-content: center; /* Center horizontally */
 }
@@ -259,5 +259,53 @@ label {
 
 .custom-checkbox input[type="checkbox"]:checked + .checkmark:after {
   display: block; /* Show the tick */
+}
+
+nav ul {
+  list-style-type: none;
+  padding: 0;
+  display: flex;
+  gap: 10px;
+}
+
+nav ul li {
+  display: inline;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+.navbar {
+  display: flex;
+  justify-content: center;
+  background-color: #007bff;
+  padding: 10px;
+}
+
+.navbar-list {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.navbar-list li {
+  font-size: 18px;
+}
+
+.navbar-list a {
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+}
+
+.navbar-list a:hover {
+  color: #ffcc00;
 }
 
