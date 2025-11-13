@@ -1,0 +1,75 @@
+/* LoginPage.css */
+
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #4c6ef5, #3b5998);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.login-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 40px 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 450px;
+    width: 90%;
+    color: #333;
+}
+
+.login-title {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #4c6ef5;
+}
+
+.login-subtitle {
+    font-size: 1rem;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+/* Add styles for the GIF */
+.gif-container {
+    margin: 60px 0;
+}
+
+.spectacles-gif {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-right: 25px;
+}
+
+.login-button {
+    background: #4c6ef5;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.login-button:hover {
+    background: #3b5998;
+}
+
+.login-button:focus {
+    outline: none;
+    box-shadow: 0 0 4px #4c6ef5;
+}

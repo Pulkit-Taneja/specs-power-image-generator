@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { addDoc, collection, doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
+import Header from './header';
 import Switch from '@mui/material/Switch';
 import { BRANCHES } from "../constants";
 import '../App.css'; // Importing the CSS file for styling

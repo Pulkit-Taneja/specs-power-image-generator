@@ -29,23 +29,16 @@ const Header = () => {
         }
     };
 
-    return (
-        <header>
-        <nav className="navbar">
-            <ul className="navbar-list">
-            {user ? (
-                <>
-                    <li>Welcome, {user.displayName}</li>
-                    <li><Link to="/specs-input">Specs Input</Link></li>
-                    <li><button onClick={handleLogout}>Logout</button></li>
-                </>
-                ) : (
-                <li><Link to="/login">Login</Link></li>
-            )}
-            </ul>
-        </nav>
-        </header>
-    );
+    if (user) {
+        return (
+            <div className="right-content-container">
+                <button onClick={handleLogout}>Logout</button>
+            </div>
+                 
+        );
+    }
+    return (<div></div>);
+
 };
 
 export default Header;

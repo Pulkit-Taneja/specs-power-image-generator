@@ -50,6 +50,11 @@
   justify-content: center; /* Center horizontally */
 }
 
+.right-content-container {
+  display: flex;
+  justify-content: right; /* Center horizontally */
+}
+
 #copy-addition-btn {
   width: 40%;
   padding: 6px 1px;
@@ -286,7 +291,18 @@ nav ul li a:hover {
   display: flex;
   justify-content: center;
   background-color: #007bff;
-  padding: 10px;
+  align-items: center;
+  padding: 10px 20px; /* Adjust inner spacing */
+  color: white;
+  position: fixed;
+  transform: translateX(86%);
+  top: 0;
+  left: 0;
+  /* width: 100%; */
+  width: 600px;
+  z-index: 1000;
+  height: 50px; /* Define navbar height explicitly */
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Optional: add shadow for visual clarity */
 }
 
 .navbar-list {

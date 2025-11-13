@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { auth } from "./firebase";
-import Header from './components/header';
+import Header from './components/header'; 
 import SpecsInputPage from './pages/SpecsInputPage';
 import LoginPage from './pages/LoginPage';
 // import About from './pages/About';
-// import Home from './pages/Home';
+import HomePage from './pages/HomePage';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -33,10 +33,10 @@ function App() {
 
   return (
     <Router>
-      <Header /> {/* Include the Header for navigation */}
       <main className="container">
+        <Header />
         <Routes>
-          {/* <Route path="/" element={<Home />} /> Define Home Page */}
+          <Route path="/" element={<HomePage />} /> Define Home Page
           <Route path="/specs-input" element={<SpecsInputPage />} /> {/* Define Specs Input Page */}
           <Route path="/login" element={<LoginPage />} /> {/* Define About Page */}
         </Routes>
