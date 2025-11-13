@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { auth } from "./firebase";
 import Header from './components/header'; 
 import SpecsInputPage from './pages/SpecsInputPage';
