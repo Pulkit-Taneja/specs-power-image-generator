@@ -302,6 +302,8 @@ styleSheet.textContent = `
 `;
 document.head.appendChild(styleSheet);
 
+const POWER_INPUT_PATTERN = /^[-+]?(\d+(\.\d*)?|\.\d*)?$/;
+
 const getViewportWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 1024);
 
 const useResponsiveStyles = () => {
@@ -458,14 +460,19 @@ const usePrescriptionState = () => {
     validateAddition(formData.leftAddition, 'leftAddition', 'Left addition');
 
     // Validate axis values
-    const validateAxis = (cylindrical, axis, fieldName, displayName) => {
-      if (cylindrical && (!axis || axis < 1 || axis > 180)) {
-        newErrors[fieldName] = `${displayName} axis must be between 1 and 180 when cylindrical is provided`;
+    const validateAxis = (axis, fieldName, displayName) => {
+      if (!axis) {
+        return;
+      }
+
+      const numericAxis = parseInt(axis, 10);
+      if (Number.isNaN(numericAxis) || numericAxis < 1 || numericAxis > 180) {
+        newErrors[fieldName] = `${displayName} axis must be between 1 and 180`;
       }
     };
 
-    validateAxis(formData.rightCyl, formData.rightAxis, 'rightAxis', 'Right');
-    validateAxis(formData.leftCyl, formData.leftAxis, 'leftAxis', 'Left');
+    validateAxis(formData.rightAxis, 'rightAxis', 'Right');
+    validateAxis(formData.leftAxis, 'leftAxis', 'Left');
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -550,12 +557,124 @@ function SpecsInput() {
     const num = parseFloat(input);
     if (isNaN(num)) return input;
     
-    let formatted = num.toFixed(2);
-    if (num > 0) {
-      formatted = '+' + formatted;
+    const formatted = num.toFixed(2);
+    if (formatted.startsWith('-')) {
+      return formatted;
     }
     return formatted;
   }, []);
+
+  const handlePowerInputChange = useCallback((field) => (event) => {
+    const { value } = event.target;
+    // if (POWER_INPUT_PATTERN.test(value)) {
+      updateField(field, value);
+    // }
+  }, [updateField]);
+
+  const handlePowerBlur = useCallback((field) => (event) => {
+    const rawValue = event.target.value;
+    const trimmedValue = typeof rawValue === "string" ? rawValue.trim() : "";
+    const isCylinderField = field === "rightCyl" || field === "leftCyl";
+    const isAdditionField = field === "rightAddition" || field === "leftAddition";
+
+    const axisField = isCylinderField
+      ? field === "rightCyl" ? "rightAxis" : "leftAxis"
+      : null;
+
+    const eyePrefix = field.startsWith("right") ? "right" : field.startsWith("left") ? "left" : null;
+
+    const clearLinkedAxis = () => {
+      if (axisField && formData[axisField]) {
+        updateField(axisField, "");
+      }
+    };
+
+    if (!trimmedValue) {
+      if (rawValue !== "") {
+        updateField(field, "");
+      }
+      if (isCylinderField) {
+        clearLinkedAxis();
+      }
+      if (isAdditionField && eyePrefix) {
+        const sph = formData[`${eyePrefix}Sph`];
+        const cyl = formData[`${eyePrefix}Cyl`];
+        const axis = formData[`${eyePrefix}Axis`];
+        if (!sph && !cyl && !axis) {
+          updateField(field, "");
+        }
+      }
+      return;
+    }
+
+    const parsedValue = parseFloat(trimmedValue);
+    if (Number.isNaN(parsedValue)) {
+      updateField(field, "");
+      if (isCylinderField) {
+        clearLinkedAxis();
+      }
+      return;
+    }
+
+    if (isCylinderField && parsedValue === 0) {
+      updateField(field, "");
+      clearLinkedAxis();
+      return;
+    }
+
+    const formattedValue = formatSpecsPower(parsedValue);
+    if (formattedValue !== rawValue) {
+      updateField(field, formattedValue);
+    }
+
+    if (isAdditionField && eyePrefix) {
+      const sph = formData[`${eyePrefix}Sph`];
+      const cyl = formData[`${eyePrefix}Cyl`];
+      const axis = formData[`${eyePrefix}Axis`];
+      if (!sph && !cyl && !axis) {
+        updateField(field, "");
+      }
+    }
+  }, [formatSpecsPower, updateField, formData]);
+
+  const handleAxisBlur = useCallback((field) => (event) => {
+    const rawValue = event.target.value;
+    const trimmedValue = typeof rawValue === "string" ? rawValue.trim() : "";
+    const isRightEye = field === "rightAxis";
+    const cylinderField = isRightEye ? "rightCyl" : "leftCyl";
+    const cylinderRawValue = formData[cylinderField];
+    const cylinderTrimmed = typeof cylinderRawValue === "string" ? cylinderRawValue.trim() : "";
+
+    const cylinderNumeric = cylinderTrimmed ? parseFloat(cylinderTrimmed) : null;
+    const cylinderIsZero = cylinderNumeric === 0;
+    const shouldClearAxis = !cylinderTrimmed || cylinderIsZero;
+
+    if (shouldClearAxis) {
+      if (formData[field]) {
+        updateField(field, "");
+      }
+      return;
+    }
+
+    if (!trimmedValue) {
+      if (rawValue !== "") {
+        updateField(field, "");
+      }
+      return;
+    }
+
+    const numericAxis = parseInt(trimmedValue, 10);
+    if (Number.isNaN(numericAxis)) {
+      updateField(field, "");
+      return;
+    }
+
+    const clampedAxis = Math.min(Math.max(numericAxis, 1), 180);
+    const normalizedAxis = String(clampedAxis);
+    if (normalizedAxis !== rawValue) {
+      updateField(field, normalizedAxis);
+    }
+  }, [formData, updateField]);
 
   const divideDescription = useCallback((description, maxLineLength = 50) => {
     if (!description) return [];
@@ -665,19 +784,69 @@ function SpecsInput() {
         context.fillText(text || "-", x, y);
       };
       
-      // Right eye row
-      context.fillText("RIGHT", 50, yPosition);
-      drawCell(formatSpecsPower(data.rightSpherical), 180, yPosition);
-      drawCell(formatSpecsPower(data.rightCylindrical), 320, yPosition);
-      drawCell(data.rightAxis || "-", 480, yPosition, data.rightCylindrical && !data.rightAxis);
-      yPosition += tableSpacing * lineHeight;
-      
-      // Left eye row
-      context.fillText("LEFT", 50, yPosition);
-      drawCell(formatSpecsPower(data.leftSpherical), 180, yPosition);
-      drawCell(formatSpecsPower(data.leftCylindrical), 320, yPosition);
-      drawCell(data.leftAxis || "-", 480, yPosition, data.leftCylindrical && !data.leftAxis);
-      yPosition += tableSpacing * lineHeight;
+      const powerRows = [
+        {
+          label: "RIGHT",
+          sphValue: data.rightSpherical,
+          cylValue: data.rightCylindrical,
+          axisValue: data.rightAxis,
+        },
+        {
+          label: "LEFT",
+          sphValue: data.leftSpherical,
+          cylValue: data.leftCylindrical,
+          axisValue: data.leftAxis,
+        },
+      ];
+
+      const hasValue = (value) => value !== null && value !== undefined && value !== "";
+      let renderedPowerRows = 0;
+
+      powerRows.forEach(({ label, sphValue, cylValue, axisValue }) => {
+        const hasSph = hasValue(sphValue);
+        const hasCyl = hasValue(cylValue);
+        const hasAxis = hasValue(axisValue);
+
+        if (!hasSph && !hasCyl && !hasAxis) {
+          return;
+        }
+
+        const numericSph = hasSph ? parseFloat(sphValue) : null;
+        const numericCyl = hasCyl ? parseFloat(cylValue) : null;
+        const sphIsNumeric = numericSph !== null && !Number.isNaN(numericSph);
+        const cylIsNumeric = numericCyl !== null && !Number.isNaN(numericCyl);
+
+        let displaySph = sphIsNumeric ? formatSpecsPower(numericSph) : (hasSph ? sphValue : "");
+        let displayCyl = cylIsNumeric ? formatSpecsPower(numericCyl) : (hasCyl ? cylValue : "");
+        let displayAxis = hasAxis ? axisValue : "";
+
+        if (cylIsNumeric && numericCyl === 0) {
+          displayCyl = "";
+        }
+
+        const cylinderHasValue = hasCyl && displayCyl !== "";
+        const axisIsBlank = !hasAxis;
+        const sphIsZero = sphIsNumeric && numericSph === 0;
+
+        if (sphIsZero && !cylinderHasValue && axisIsBlank) {
+          displaySph = "PLN";
+        } else if (sphIsZero && cylinderHasValue) {
+          displaySph = "";
+        }
+
+        const axisError = cylinderHasValue && axisIsBlank;
+
+        context.fillText(label, 50, yPosition);
+        drawCell(displaySph, 180, yPosition);
+        drawCell(displayCyl, 320, yPosition);
+        drawCell(displayAxis, 480, yPosition, axisError);
+        yPosition += tableSpacing * lineHeight;
+        renderedPowerRows += 1;
+      });
+
+      if (renderedPowerRows === 0) {
+        yPosition += lineHeight;
+      }
       
       // Addition section
       if (data.rightAddition || data.leftAddition) {
@@ -922,7 +1091,8 @@ function SpecsInput() {
                 type="number"
                 step="0.25"
                 value={formData.rightSph}
-                onChange={(e) => updateField('rightSph', e.target.value)}
+                onChange={handlePowerInputChange('rightSph')}
+                onBlur={handlePowerBlur('rightSph')}
                 placeholder="Sph"
                 style={{
                   ...styles.input,
@@ -933,7 +1103,8 @@ function SpecsInput() {
                 type="number"
                 step="0.25"
                 value={formData.rightCyl}
-                onChange={(e) => updateField('rightCyl', e.target.value)}
+                onChange={handlePowerInputChange('rightCyl')}
+                onBlur={handlePowerBlur('rightCyl')}
                 placeholder="Cyl"
                 style={{
                   ...styles.input,
@@ -946,6 +1117,7 @@ function SpecsInput() {
                 max="180"
                 value={formData.rightAxis}
                 onChange={(e) => updateField('rightAxis', e.target.value)}
+                onBlur={handleAxisBlur('rightAxis')}
                 placeholder="Axis"
                 style={{
                   ...styles.input,
@@ -959,7 +1131,8 @@ function SpecsInput() {
                 type="number"
                 step="0.25"
                 value={formData.leftSph}
-                onChange={(e) => updateField('leftSph', e.target.value)}
+                onChange={handlePowerInputChange('leftSph')}
+                onBlur={handlePowerBlur('leftSph')}
                 placeholder="Sph"
                 style={{
                   ...styles.input,
@@ -970,7 +1143,8 @@ function SpecsInput() {
                 type="number"
                 step="0.25"
                 value={formData.leftCyl}
-                onChange={(e) => updateField('leftCyl', e.target.value)}
+                onChange={handlePowerInputChange('leftCyl')}
+                onBlur={handlePowerBlur('leftCyl')}
                 placeholder="Cyl"
                 style={{
                   ...styles.input,
@@ -983,6 +1157,7 @@ function SpecsInput() {
                 max="180"
                 value={formData.leftAxis}
                 onChange={(e) => updateField('leftAxis', e.target.value)}
+                onBlur={handleAxisBlur('leftAxis')}
                 placeholder="Axis"
                 style={{
                   ...styles.input,
@@ -999,7 +1174,8 @@ function SpecsInput() {
                 step="0.25"
                 min="0"
                 value={formData.rightAddition}
-                onChange={(e) => updateField('rightAddition', e.target.value)}
+                onChange={handlePowerInputChange('rightAddition')}
+                onBlur={handlePowerBlur('rightAddition')}
                 placeholder="Right Add"
                 style={{
                   ...styles.input,
@@ -1011,7 +1187,8 @@ function SpecsInput() {
                 step="0.25"
                 min="0"
                 value={formData.leftAddition}
-                onChange={(e) => updateField('leftAddition', e.target.value)}
+                onChange={handlePowerInputChange('leftAddition')}
+                onBlur={handlePowerBlur('leftAddition')}
                 placeholder="Left Add"
                 style={{
                   ...styles.input,
