@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { addDoc, collection, doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
-import Header from './header';
 import Switch from '@mui/material/Switch';
 import { BRANCHES } from "../constants";
 
@@ -12,10 +11,10 @@ const styles = {
   pageWrapper: {
     minHeight: '100vh',
     backgroundColor: '#f4f6f9',
-    padding: '0',
+    padding: '40px 0',
     margin: '0',
-    paddingTop: '80px', // Account for fixed header
-    paddingBottom: '40px',
+    width: '100%',
+    position: 'relative',
   },
   
   container: {
@@ -284,25 +283,16 @@ styleSheet.textContent = `
   
   /* Override problematic global styles */
   .specs-input-wrapper {
-    margin: 0 !important;
-    padding: 0 !important;
     position: relative;
     min-height: 100vh;
+    width: 100%;
   }
   
-  .specs-input-wrapper > * {
-    margin: 0;
-  }
-  
-  /* Ensure the sticky header doesn't interfere with scrolling */
+  /* Ensure the header stays at top but doesn't interfere with layout */
   .right-content-container {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 1000 !important;
-    width: 100% !important;
-    transform: none !important;
+    position: relative;
+    width: 100%;
+    z-index: 1000;
   }
 `;
 document.head.appendChild(styleSheet);
@@ -815,7 +805,6 @@ function SpecsInput() {
 
   return (
     <div className="specs-input-wrapper" style={styles.pageWrapper}>
-      <Header />
       <div style={styles.container}>
         {/* Header Section */}
         <div style={styles.header}>

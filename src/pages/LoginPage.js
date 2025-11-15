@@ -45,8 +45,9 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="login-container">
-            <div className="login-card">
+        <div className="login-page">
+            <div className="login-container">
+                <div className="login-card">
                 <h1 className="login-title">Welcome Back!!!</h1>
                 <p className="login-subtitle">Sign in to access your account</p>
                 {/* Add GIF below */}
@@ -56,6 +57,7 @@ const LoginPage = () => {
                 <button className="login-button" onClick={handleLogin}>
                     Login with Google
                 </button>
+                </div>
             </div>
         </div>
     );

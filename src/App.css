@@ -39,7 +39,7 @@
 
 /* General Styles */
 * {
-  margin: 0.2em;
+  margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
@@ -52,13 +52,12 @@
 
 .right-content-container {
   display: flex;
-  justify-content: flex-end; /* Align to the right */
-  padding: 15px 20px; /* Add padding for better visibility */
-  background-color: #f8f9fa; /* Light background */
-  border-bottom: 1px solid #e9ecef; /* Subtle border */
-  position: sticky; /* Make it stick to the top */
-  top: 0; /* Stick to the very top */
-  z-index: 1000; /* Ensure it's above other content */
+  justify-content: flex-end;
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  position: relative;
+  z-index: 1000;
 }
 
 .right-content-container button {
@@ -316,17 +315,13 @@ nav ul li a:hover {
   justify-content: center;
   background-color: #007bff;
   align-items: center;
-  padding: 10px 20px; /* Adjust inner spacing */
+  padding: 10px 20px;
   color: white;
-  position: fixed;
-  transform: translateX(86%);
-  top: 0;
-  left: 0;
-  /* width: 100%; */
-  width: 600px;
+  position: relative;
+  width: 100%;
   z-index: 1000;
-  height: 50px; /* Define navbar height explicitly */
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Optional: add shadow for visual clarity */
+  height: 50px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .navbar-list {

@@ -1,6 +1,6 @@
 /* LoginPage.css */
 
-body {
+.login-page {
     margin: 0;
     font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #4c6ef5, #3b5998);
@@ -9,6 +9,12 @@ body {
     justify-content: center;
     align-items: center;
     color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
 }
 
 .login-container {
