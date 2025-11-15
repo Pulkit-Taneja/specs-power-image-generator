@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { addDoc, collection, doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import Switch from '@mui/material/Switch';
 import { BRANCHES } from "../constants";
@@ -371,6 +371,15 @@ const TRANSPOSE_LABEL = 'Transpose';
 
 const hasValue = (value) => value !== null && value !== undefined && value !== "";
 
+const generateClientUuid = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  const randomSegment = () => Math.random().toString(16).slice(2, 10);
+  return `${randomSegment()}-${randomSegment()}`;
+};
+
 const parseNullableFloat = (value) => {
   if (value === "" || value === null || value === undefined) return null;
   const normalizedValue = typeof value === "string" ? value.trim() : value;
@@ -484,6 +493,7 @@ const useResponsiveStyles = () => {
 const usePrescriptionState = () => {
   const [formData, setFormData] = useState({
     customerName: "",
+    jobCard: "",
     rightSph: "",
     rightCyl: "",
     rightAxis: "",
@@ -510,6 +520,7 @@ const usePrescriptionState = () => {
   const resetForm = useCallback(() => {
     setFormData({
       customerName: "",
+      jobCard: "",
       rightSph: "",
       rightCyl: "",
       rightAxis: "",
@@ -580,7 +591,7 @@ const usePrescriptionState = () => {
     return Object.keys(newErrors).length === 0;
   }, [formData]);
 
-  return { formData, updateField, resetForm, validateForm, errors };
+  return { formData, updateField, resetForm, validateForm, errors, setErrors };
 };
 
 // Custom hook for authentication and branch management
@@ -642,7 +653,7 @@ const useAuthAndBranch = () => {
 };
 
 function SpecsInput() {
-  const { formData, updateField, resetForm, validateForm, errors } = usePrescriptionState();
+  const { formData, updateField, resetForm, validateForm, errors, setErrors } = usePrescriptionState();
   const { user, branchName, branchSwitchChecked, handleBranchChange, loading } = useAuthAndBranch();
   const styles = useResponsiveStyles();
   const [imageUrl, setImageUrl] = useState(null);
@@ -858,6 +869,7 @@ function SpecsInput() {
 
   const createGenerationPayload = useCallback(() => ({
     customerName: formData.customerName,
+    jobCard: formData.jobCard,
     rightSpherical: formData.rightSph,
     rightCylindrical: formData.rightCyl,
     rightAxis: formData.rightAxis,
@@ -1055,6 +1067,14 @@ function SpecsInput() {
         context.fillStyle = "#000000";
       }
 
+      if (data.jobCard) {
+        context.font = "20px Arial";
+        context.fillStyle = "#333333";
+        context.fillText(`Job Card: ${data.jobCard}`, 50, yPosition);
+        yPosition += lineHeight;
+        context.fillStyle = "#000000";
+      }
+
       yPosition += lineHeight / 2;
 
       context.font = "bold 24px Arial";
@@ -1238,12 +1258,13 @@ function SpecsInput() {
   }, [formData, updateField]);
 
   // Enhanced save to database functionality
-  const saveLensOrder = useCallback(async (orderData) => {
+  const saveLensOrder = useCallback(async (orderData, documentId) => {
     setIsSaving(true);
     try {
-      const docRef = await addDoc(collection(db, "lens_orders"), {
+      await setDoc(doc(db, "lens_orders", documentId), {
         ...orderData,
         branchName,
+        jobCard: documentId,
         createdAt: new Date().toISOString(),
         createdBy: user?.email || 'unknown'
       });
@@ -1251,7 +1272,7 @@ function SpecsInput() {
       setSuccessMessage("Order saved successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
       
-      return docRef.id;
+      return documentId;
     } catch (error) {
       console.error("Error saving order:", error);
       alert("Error saving order. Please try again.");
@@ -1281,6 +1302,17 @@ function SpecsInput() {
   // Handle save to database
   const handleSaveToDatabase = useCallback(async () => {
     if (!validateForm()) {
+      return;
+    }
+
+    const jobCardValue = formData.jobCard ? formData.jobCard.trim() : "";
+    if (!jobCardValue) {
+      setErrors(prev => ({ ...prev, jobCard: "Job card is required to save the order." }));
+      return;
+    }
+
+    if (jobCardValue.includes("/")) {
+      setErrors(prev => ({ ...prev, jobCard: "Job card cannot contain '/'." }));
       return;
     }
 
@@ -1342,14 +1374,18 @@ function SpecsInput() {
       };
     }
 
+    const uniqueDocumentId = `${jobCardValue}-${generateClientUuid()}`;
+
     await saveLensOrder({
       customerName: formData.customerName || "",
+      jobCard: uniqueDocumentId,
+      jobCardInput: jobCardValue,
       lensDescription: formData.lensDescription || "",
       supplierName: formData.supplierName || "",
       urgent: formData.urgent || false,
       input_power: inputPower,
       ordered_power: orderedPower,
-    });
+    }, uniqueDocumentId);
   }, [
     validateForm,
     saveLensOrder,
@@ -1360,6 +1396,7 @@ function SpecsInput() {
     computePowerDisplay,
     displayMode,
     isTranspose,
+    setErrors,
   ]);
 
   // Handle form reset
@@ -1553,7 +1590,9 @@ function SpecsInput() {
             </button>
             
             {/* Display validation errors */}
-            {Object.entries(errors).map(([field, error]) => (
+            {Object.entries(errors)
+              .filter(([field]) => field !== 'jobCard')
+              .map(([field, error]) => (
               <div key={field} style={styles.errorText}>{error}</div>
             ))}
           </div>
@@ -1593,6 +1632,25 @@ function SpecsInput() {
                   placeholder="Enter customer name"
                   style={styles.input}
                 />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Job Card:
+                </label>
+                <input
+                  type="text"
+                  value={formData.jobCard}
+                  onChange={(e) => updateField('jobCard', e.target.value)}
+                  placeholder="Enter job card number"
+                  style={{
+                    ...styles.input,
+                    borderColor: errors.jobCard ? '#dc3545' : styles.input.borderColor
+                  }}
+                />
+                {errors.jobCard && (
+                  <div style={{ ...styles.errorText, marginTop: '6px' }}>{errors.jobCard}</div>
+                )}
               </div>
               
               <div>
