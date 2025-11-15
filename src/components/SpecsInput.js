@@ -369,6 +369,24 @@ const DISPLAY_MODE_ORDER = [
 
 const TRANSPOSE_LABEL = 'Transpose';
 
+const hasValue = (value) => value !== null && value !== undefined && value !== "";
+
+const parseNullableFloat = (value) => {
+  if (value === "" || value === null || value === undefined) return null;
+  const normalizedValue = typeof value === "string" ? value.trim() : value;
+  if (normalizedValue === "-") {
+    return 0;
+  }
+  const parsed = parseFloat(normalizedValue);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
+const parseNullableInt = (value) => {
+  if (value === "" || value === null || value === undefined) return null;
+  const parsed = parseInt(value, 10);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
 const getViewportWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 1024);
 
 const useResponsiveStyles = () => {
@@ -651,6 +669,208 @@ function SpecsInput() {
     return formatted;
   }, []);
 
+  const computePowerDisplay = useCallback((data, options = {}) => {
+    if (!data) {
+      return null;
+    }
+
+    const selectedMode = options.mode ?? displayMode;
+    const shouldTranspose = options.transpose ?? isTranspose;
+
+    const formatSignedPowerForDisplay = (value) => {
+      if (value === "" || value === null || value === undefined) {
+        return "";
+      }
+
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (trimmed === "") {
+          return "";
+        }
+        if (trimmed.toUpperCase() === "PLN") {
+          return "PLN";
+        }
+        if (trimmed === "-") {
+          return "-";
+        }
+      }
+
+      const numericValue = typeof value === "number" ? value : parseFloat(value);
+      if (Number.isNaN(numericValue)) {
+        return value;
+      }
+
+      const roundedValue = Math.round(numericValue * 100) / 100;
+      const formatted = formatSpecsPower(roundedValue);
+
+      if (Math.abs(roundedValue) < 0.0001) {
+        return "+0.00";
+      }
+
+      if (roundedValue > 0) {
+        return formatted.startsWith("+") ? formatted : `+${formatted}`;
+      }
+
+      return formatted;
+    };
+
+    const powerRows = [
+      {
+        label: "RIGHT",
+        sphValue: data.rightSpherical,
+        cylValue: data.rightCylindrical,
+        axisValue: data.rightAxis,
+        additionValue: data.rightAddition,
+      },
+      {
+        label: "LEFT",
+        sphValue: data.leftSpherical,
+        cylValue: data.leftCylindrical,
+        axisValue: data.leftAxis,
+        additionValue: data.leftAddition,
+      },
+    ];
+
+    const rows = powerRows.map(({ label, sphValue, cylValue, axisValue, additionValue }) => {
+      const rowHasData = hasValue(sphValue) || hasValue(cylValue) || hasValue(axisValue);
+
+      if (!rowHasData) {
+        return {
+          label,
+          spherical: "",
+          cylindrical: "",
+          axis: "",
+          axisError: false,
+          hasData: false,
+        };
+      }
+
+      let workingSph = parseNullableFloat(sphValue);
+      let workingCyl = parseNullableFloat(cylValue);
+      let workingAxis = parseNullableInt(axisValue);
+      const additionNumeric = parseNullableFloat(additionValue);
+
+      if (selectedMode === DISPLAY_MODES.NEAR && additionNumeric !== null) {
+        const baseSphere = workingSph !== null ? workingSph : 0;
+        workingSph = baseSphere + additionNumeric;
+      }
+
+      if (shouldTranspose) {
+        if (workingCyl !== null && workingAxis !== null) {
+          const pivotSph = workingSph !== null ? workingSph : 0;
+          const transposedSph = pivotSph + workingCyl;
+          const transposedCyl = -workingCyl;
+          let transposedAxis = workingAxis <= 90 ? workingAxis + 90 : workingAxis - 90;
+          if (transposedAxis <= 0) transposedAxis += 180;
+          if (transposedAxis > 180) transposedAxis -= 180;
+
+          workingSph = transposedSph;
+          workingCyl = transposedCyl;
+          workingAxis = transposedAxis;
+        } else if (workingCyl !== null && workingAxis === null) {
+          const pivotSph = workingSph !== null ? workingSph : 0;
+          workingSph = pivotSph + workingCyl;
+          workingCyl = -workingCyl;
+        } else if (workingCyl === null && workingAxis !== null) {
+          let transposedAxis = workingAxis <= 90 ? workingAxis + 90 : workingAxis - 90;
+          if (transposedAxis <= 0) transposedAxis += 180;
+          if (transposedAxis > 180) transposedAxis -= 180;
+          workingAxis = transposedAxis;
+        }
+      }
+
+      const sphIsNumeric = workingSph !== null && !Number.isNaN(workingSph);
+      const cylIsNumeric = workingCyl !== null && !Number.isNaN(workingCyl);
+      const axisIsNumeric = workingAxis !== null && !Number.isNaN(workingAxis);
+
+      let displaySph = "";
+      let displayCyl = "";
+      let displayAxis = "";
+
+      if (sphIsNumeric) {
+        displaySph = formatSpecsPower(workingSph);
+      } else if (hasValue(sphValue)) {
+        displaySph = sphValue;
+      }
+
+      if (cylIsNumeric) {
+        displayCyl = formatSpecsPower(workingCyl);
+      } else if (hasValue(cylValue)) {
+        displayCyl = cylValue;
+      }
+
+      if (cylIsNumeric && workingCyl === 0) {
+        displayCyl = "";
+      }
+
+      if (axisIsNumeric) {
+        displayAxis = String(workingAxis);
+      } else if (hasValue(axisValue)) {
+        displayAxis = axisValue;
+      }
+
+      const cylinderHasValue = displayCyl !== "";
+      const axisPresent = axisIsNumeric || hasValue(axisValue);
+      const axisError = cylinderHasValue && !axisPresent;
+
+      if (sphIsNumeric && workingSph === 0) {
+        if (!cylinderHasValue && !axisPresent) {
+          displaySph = "PLN";
+        } else if (cylinderHasValue) {
+          displaySph = "";
+        }
+      }
+
+      return {
+        label,
+        spherical: formatSignedPowerForDisplay(displaySph),
+        cylindrical: formatSignedPowerForDisplay(displayCyl),
+        axis: displayAxis,
+        axisError,
+        hasData: true,
+      };
+    });
+
+    const rightAdditionHasValue = hasValue(data.rightAddition);
+    const leftAdditionHasValue = hasValue(data.leftAddition);
+    const shouldDisplayAdditionSection =
+      selectedMode === DISPLAY_MODES.COMPLETE && (rightAdditionHasValue || leftAdditionHasValue);
+
+    const addition = {
+      shouldDisplay: shouldDisplayAdditionSection,
+      right: shouldDisplayAdditionSection && rightAdditionHasValue
+        ? formatSignedPowerForDisplay(data.rightAddition)
+        : "",
+      left: shouldDisplayAdditionSection && leftAdditionHasValue
+        ? formatSignedPowerForDisplay(data.leftAddition)
+        : "",
+    };
+
+    return {
+      rows,
+      addition,
+      metadata: {
+        mode: selectedMode,
+        transposeApplied: shouldTranspose,
+      },
+    };
+  }, [displayMode, isTranspose, formatSpecsPower]);
+
+  const createGenerationPayload = useCallback(() => ({
+    customerName: formData.customerName,
+    rightSpherical: formData.rightSph,
+    rightCylindrical: formData.rightCyl,
+    rightAxis: formData.rightAxis,
+    leftSpherical: formData.leftSph,
+    leftCylindrical: formData.leftCyl,
+    leftAxis: formData.leftAxis,
+    lensDescription: formData.lensDescription,
+    supplierName: formData.supplierName,
+    urgent: formData.urgent,
+    rightAddition: formData.rightAddition,
+    leftAddition: formData.leftAddition,
+  }), [formData]);
+
   const handlePowerInputChange = useCallback((field) => (event) => {
     const { value } = event.target;
     // if (POWER_INPUT_PATTERN.test(value)) {
@@ -813,22 +1033,6 @@ function SpecsInput() {
       const selectedMode = mode;
       const shouldTranspose = Boolean(transpose);
 
-      const parseNullableFloat = (value) => {
-        if (value === "" || value === null || value === undefined) return null;
-        const normalizedValue = typeof value === "string" ? value.trim() : value;
-        if (normalizedValue === "-") {
-          return 0;
-        }
-        const parsed = parseFloat(normalizedValue);
-        return Number.isNaN(parsed) ? null : parsed;
-      };
-
-      const parseNullableInt = (value) => {
-        if (value === "" || value === null || value === undefined) return null;
-        const parsed = parseInt(value, 10);
-        return Number.isNaN(parsed) ? null : parsed;
-      };
-
       if (data.urgent) {
         context.fillStyle = "#FF0000";
         context.font = "bold 48px Arial";
@@ -884,112 +1088,23 @@ function SpecsInput() {
         context.fillText(text || "-", x, y);
       };
 
-      const powerRows = [
-        {
-          label: "RIGHT",
-          sphValue: data.rightSpherical,
-          cylValue: data.rightCylindrical,
-          axisValue: data.rightAxis,
-          additionValue: data.rightAddition,
-        },
-        {
-          label: "LEFT",
-          sphValue: data.leftSpherical,
-          cylValue: data.leftCylindrical,
-          axisValue: data.leftAxis,
-          additionValue: data.leftAddition,
-        },
-      ];
+      const displayData = computePowerDisplay(data, {
+        mode: selectedMode,
+        transpose: shouldTranspose,
+      });
 
-      const hasValue = (value) => value !== null && value !== undefined && value !== "";
+      const rowsToRender = displayData?.rows ?? [];
       let renderedPowerRows = 0;
 
-      powerRows.forEach(({ label, sphValue, cylValue, axisValue, additionValue }) => {
-        const rowHasData = hasValue(sphValue) || hasValue(cylValue) || hasValue(axisValue);
-        if (!rowHasData) {
+      rowsToRender.forEach(({ label, spherical, cylindrical, axis, axisError, hasData }) => {
+        if (!hasData) {
           return;
         }
 
-        let workingSph = parseNullableFloat(sphValue);
-        let workingCyl = parseNullableFloat(cylValue);
-        let workingAxis = parseNullableInt(axisValue);
-        const additionNumeric = parseNullableFloat(additionValue);
-
-        if (selectedMode === DISPLAY_MODES.NEAR && additionNumeric !== null) {
-          const baseSphere = workingSph !== null ? workingSph : 0;
-          workingSph = baseSphere + additionNumeric;
-        }
-
-        if (shouldTranspose) {
-          if (workingCyl !== null && workingAxis !== null) {
-            const pivotSph = workingSph !== null ? workingSph : 0;
-            const transposedSph = pivotSph + workingCyl;
-            const transposedCyl = -workingCyl;
-            let transposedAxis = workingAxis <= 90 ? workingAxis + 90 : workingAxis - 90;
-            if (transposedAxis <= 0) transposedAxis += 180;
-            if (transposedAxis > 180) transposedAxis -= 180;
-
-            workingSph = transposedSph;
-            workingCyl = transposedCyl;
-            workingAxis = transposedAxis;
-          } else if (workingCyl !== null && workingAxis === null) {
-            const pivotSph = workingSph !== null ? workingSph : 0;
-            workingSph = pivotSph + workingCyl;
-            workingCyl = -workingCyl;
-          } else if (workingCyl === null && workingAxis !== null) {
-            let transposedAxis = workingAxis <= 90 ? workingAxis + 90 : workingAxis - 90;
-            if (transposedAxis <= 0) transposedAxis += 180;
-            if (transposedAxis > 180) transposedAxis -= 180;
-            workingAxis = transposedAxis;
-          }
-        }
-
-        const sphIsNumeric = workingSph !== null && !Number.isNaN(workingSph);
-        const cylIsNumeric = workingCyl !== null && !Number.isNaN(workingCyl);
-        const axisIsNumeric = workingAxis !== null && !Number.isNaN(workingAxis);
-
-        let displaySph = "";
-        let displayCyl = "";
-        let displayAxis = "";
-
-        if (sphIsNumeric) {
-          displaySph = formatSpecsPower(workingSph);
-        } else if (hasValue(sphValue)) {
-          displaySph = sphValue;
-        }
-
-        if (cylIsNumeric) {
-          displayCyl = formatSpecsPower(workingCyl);
-        } else if (hasValue(cylValue)) {
-          displayCyl = cylValue;
-        }
-
-        if (cylIsNumeric && workingCyl === 0) {
-          displayCyl = "";
-        }
-
-        if (axisIsNumeric) {
-          displayAxis = String(workingAxis);
-        } else if (hasValue(axisValue)) {
-          displayAxis = axisValue;
-        }
-
-        const cylinderHasValue = displayCyl !== "";
-        const axisPresent = axisIsNumeric || hasValue(axisValue);
-        const axisError = cylinderHasValue && !axisPresent;
-
-        if (sphIsNumeric && workingSph === 0) {
-          if (!cylinderHasValue && !axisPresent) {
-            displaySph = "PLN";
-          } else if (cylinderHasValue) {
-            displaySph = "";
-          }
-        }
-
         context.fillText(label, 50, yPosition);
-        drawCell(displaySph, 180, yPosition);
-        drawCell(displayCyl, 320, yPosition);
-        drawCell(displayAxis, 480, yPosition, axisError);
+        drawCell(spherical, 180, yPosition);
+        drawCell(cylindrical, 320, yPosition);
+        drawCell(axis, 480, yPosition, axisError);
         yPosition += tableSpacing * lineHeight;
         renderedPowerRows += 1;
       });
@@ -998,9 +1113,8 @@ function SpecsInput() {
         yPosition += lineHeight;
       }
 
-      const shouldDisplayAdditionSection =
-        selectedMode === DISPLAY_MODES.COMPLETE &&
-        (data.rightAddition || data.leftAddition);
+      const additionData = displayData?.addition;
+      const shouldDisplayAdditionSection = Boolean(additionData?.shouldDisplay);
 
       if (shouldDisplayAdditionSection) {
         yPosition += lineHeight / 2;
@@ -1008,14 +1122,9 @@ function SpecsInput() {
         context.fillText("ADDITION", 50, yPosition);
         yPosition += lineHeight;
 
-        const formatAdditionValue = (value) => {
-          const parsed = parseNullableFloat(value);
-          return parsed !== null ? formatSpecsPower(parsed) : value;
-        };
-
         context.font = "22px Arial";
-        const rightAdditionFormatted = data.rightAddition ? formatAdditionValue(data.rightAddition) : "";
-        const leftAdditionFormatted = data.leftAddition ? formatAdditionValue(data.leftAddition) : "";
+        const rightAdditionFormatted = additionData?.right || "";
+        const leftAdditionFormatted = additionData?.left || "";
 
         if (rightAdditionFormatted && leftAdditionFormatted && rightAdditionFormatted === leftAdditionFormatted) {
           context.fillText(`${rightAdditionFormatted} (Both Eyes)`, 180, yPosition);
@@ -1089,7 +1198,7 @@ function SpecsInput() {
         setIsGenerating(false);
       }
     }
-  }, [formatSpecsPower, divideDescription, branchName, imageUrl]);
+  }, [computePowerDisplay, divideDescription, branchName, imageUrl]);
 
   const handleModeChange = useCallback(async (mode) => {
     if (!lastGeneratedData || mode === displayMode) {
@@ -1160,27 +1269,14 @@ function SpecsInput() {
       return;
     }
 
-    const generationPayload = {
-      customerName: formData.customerName,
-      rightSpherical: formData.rightSph,
-      rightCylindrical: formData.rightCyl,
-      rightAxis: formData.rightAxis,
-      leftSpherical: formData.leftSph,
-      leftCylindrical: formData.leftCyl,
-      leftAxis: formData.leftAxis,
-      lensDescription: formData.lensDescription,
-      supplierName: formData.supplierName,
-      urgent: formData.urgent,
-      rightAddition: formData.rightAddition,
-      leftAddition: formData.leftAddition,
-    };
+    const generationPayload = createGenerationPayload();
 
     setDisplayMode(DISPLAY_MODES.COMPLETE);
     setIsTranspose(false);
     setLastGeneratedData(generationPayload);
 
     await generateImage(generationPayload, { mode: DISPLAY_MODES.COMPLETE, transpose: false });
-  }, [formData, validateForm, generateImage]);
+  }, [validateForm, createGenerationPayload, generateImage]);
 
   // Handle save to database
   const handleSaveToDatabase = useCallback(async () => {
@@ -1188,21 +1284,83 @@ function SpecsInput() {
       return;
     }
 
-    await saveLensOrder({
-      customerName: formData.customerName || "",
+    const inputPower = {
       rightSpherical: formatSpecsPower(formData.rightSph) || "0.00",
       rightCylindrical: formatSpecsPower(formData.rightCyl) || "0.00",
       rightAxis: formData.rightAxis || 0,
       leftSpherical: formatSpecsPower(formData.leftSph) || "0.00",
       leftCylindrical: formatSpecsPower(formData.leftCyl) || "0.00",
       leftAxis: formData.leftAxis || 0,
+      rightAddition: formatSpecsPower(formData.rightAddition) || "0.00",
+      leftAddition: formatSpecsPower(formData.leftAddition) || "0.00",
+    };
+
+    const sourceData = lastGeneratedData || createGenerationPayload();
+    const orderedDisplay = computePowerDisplay(sourceData, {
+      mode: displayMode,
+      transpose: isTranspose,
+    });
+
+    const formatAxisForStorage = (value) => {
+      const parsedAxis = parseNullableInt(value);
+      if (!parsedAxis) {
+        return "";
+      }
+      return String(parsedAxis);
+    };
+
+    const defaultOrderedPower = {
+      mode: displayMode,
+      transposeApplied: isTranspose,
+      rightSpherical: inputPower.rightSpherical,
+      rightCylindrical: inputPower.rightCylindrical,
+      rightAxis: formatAxisForStorage(formData.rightAxis),
+      leftSpherical: inputPower.leftSpherical,
+      leftCylindrical: inputPower.leftCylindrical,
+      leftAxis: formatAxisForStorage(formData.leftAxis),
+      rightAddition: "",
+      leftAddition: "",
+    };
+
+    let orderedPower = defaultOrderedPower;
+
+    if (orderedDisplay) {
+      const rightRow = orderedDisplay.rows.find((row) => row.label === "RIGHT");
+      const leftRow = orderedDisplay.rows.find((row) => row.label === "LEFT");
+
+      orderedPower = {
+        mode: orderedDisplay.metadata.mode,
+        transposeApplied: orderedDisplay.metadata.transposeApplied,
+        rightSpherical: rightRow ? rightRow.spherical || "" : defaultOrderedPower.rightSpherical,
+        rightCylindrical: rightRow ? rightRow.cylindrical || "" : defaultOrderedPower.rightCylindrical,
+        rightAxis: rightRow ? rightRow.axis || "" : defaultOrderedPower.rightAxis,
+        leftSpherical: leftRow ? leftRow.spherical || "" : defaultOrderedPower.leftSpherical,
+        leftCylindrical: leftRow ? leftRow.cylindrical || "" : defaultOrderedPower.leftCylindrical,
+        leftAxis: leftRow ? leftRow.axis || "" : defaultOrderedPower.leftAxis,
+        rightAddition: orderedDisplay.addition.shouldDisplay ? orderedDisplay.addition.right : "",
+        leftAddition: orderedDisplay.addition.shouldDisplay ? orderedDisplay.addition.left : "",
+      };
+    }
+
+    await saveLensOrder({
+      customerName: formData.customerName || "",
       lensDescription: formData.lensDescription || "",
       supplierName: formData.supplierName || "",
       urgent: formData.urgent || false,
-      rightAddition: formatSpecsPower(formData.rightAddition) || "0.00",
-      leftAddition: formatSpecsPower(formData.leftAddition) || "0.00",
+      input_power: inputPower,
+      ordered_power: orderedPower,
     });
-  }, [formData, validateForm, saveLensOrder, formatSpecsPower]);
+  }, [
+    validateForm,
+    saveLensOrder,
+    formatSpecsPower,
+    formData,
+    lastGeneratedData,
+    createGenerationPayload,
+    computePowerDisplay,
+    displayMode,
+    isTranspose,
+  ]);
 
   // Handle form reset
   const handleReset = useCallback(() => {
