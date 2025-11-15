@@ -219,6 +219,51 @@ const baseStyles = {
     borderRadius: '8px',
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
   },
+
+  imageModeButtons: {
+    display: 'flex',
+    gap: '12px',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    marginTop: '20px',
+  },
+
+  modeButton: {
+    padding: '10px 18px',
+    borderRadius: '6px',
+    border: '1px solid #667eea',
+    backgroundColor: '#ffffff',
+    color: '#667eea',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease-in-out',
+    minWidth: '120px',
+  },
+
+  modeButtonActive: {
+    backgroundColor: '#667eea',
+    color: '#ffffff',
+    cursor: 'default',
+    boxShadow: '0 6px 12px rgba(102, 126, 234, 0.25)',
+  },
+
+  transposeButton: {
+    padding: '10px 18px',
+    borderRadius: '6px',
+    border: '1px solid #ff9f43',
+    backgroundColor: '#ffffff',
+    color: '#ff9f43',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease-in-out',
+    minWidth: '120px',
+  },
+
+  transposeButtonActive: {
+    backgroundColor: '#ff9f43',
+    color: '#ffffff',
+    boxShadow: '0 6px 12px rgba(255, 159, 67, 0.25)',
+  },
   
   loadingSpinner: {
     display: 'inline-block',
@@ -304,6 +349,26 @@ document.head.appendChild(styleSheet);
 
 const POWER_INPUT_PATTERN = /^[-+]?(\d+(\.\d*)?|\.\d*)?$/;
 
+const DISPLAY_MODES = Object.freeze({
+  DISTANCE: 'distance',
+  NEAR: 'near',
+  COMPLETE: 'complete',
+});
+
+const DISPLAY_MODE_LABELS = {
+  [DISPLAY_MODES.DISTANCE]: 'Distance',
+  [DISPLAY_MODES.NEAR]: 'Near',
+  [DISPLAY_MODES.COMPLETE]: 'Complete',
+};
+
+const DISPLAY_MODE_ORDER = [
+  DISPLAY_MODES.DISTANCE,
+  DISPLAY_MODES.NEAR,
+  DISPLAY_MODES.COMPLETE,
+];
+
+const TRANSPOSE_LABEL = 'Transpose';
+
 const getViewportWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 1024);
 
 const useResponsiveStyles = () => {
@@ -373,6 +438,25 @@ const useResponsiveStyles = () => {
       form: {
         ...baseStyles.form,
         gap: isMobile ? '18px' : baseStyles.form.gap,
+      },
+      imageModeButtons: {
+        ...baseStyles.imageModeButtons,
+      },
+      modeButton: {
+        ...baseStyles.modeButton,
+        minWidth: isMobile ? 'calc(50% - 8px)' : isTablet ? '110px' : baseStyles.modeButton.minWidth,
+        padding: isMobile ? '9px 12px' : isTablet ? '10px 16px' : baseStyles.modeButton.padding,
+      },
+      modeButtonActive: {
+        ...baseStyles.modeButtonActive,
+      },
+      transposeButton: {
+        ...baseStyles.transposeButton,
+        minWidth: isMobile ? 'calc(50% - 8px)' : isTablet ? '110px' : baseStyles.transposeButton.minWidth,
+        padding: isMobile ? '9px 12px' : isTablet ? '10px 16px' : baseStyles.transposeButton.padding,
+      },
+      transposeButtonActive: {
+        ...baseStyles.transposeButtonActive,
       },
     };
   }, [viewportWidth]);
@@ -548,6 +632,9 @@ function SpecsInput() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [displayMode, setDisplayMode] = useState(DISPLAY_MODES.COMPLETE);
+  const [isTranspose, setIsTranspose] = useState(false);
+  const [lastGeneratedData, setLastGeneratedData] = useState(null);
 
   // Utility functions
   const formatSpecsPower = useCallback((input) => {
@@ -697,33 +784,51 @@ function SpecsInput() {
   }, []);
 
   // Enhanced image generation function
-  const generateImage = useCallback(async (data) => {
-    setIsGenerating(true);
-    
+  const generateImage = useCallback(async (data, options = {}) => {
+    const { mode = DISPLAY_MODES.COMPLETE, transpose = false, showLoading = true } = options;
+
+    if (showLoading) {
+      setIsGenerating(true);
+    }
+
     try {
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
-      
-      // Enhanced canvas size and styling
+
       canvas.width = 800;
       canvas.height = 900;
-      
-      // Background
+
       context.fillStyle = data.urgent ? "#FFE6E6" : "#FFFFFF";
       context.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Add subtle border
+
       context.strokeStyle = "#E0E0E0";
       context.lineWidth = 2;
       context.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-      
+
       context.fillStyle = "#000000";
       let yPosition = 60;
       const lineHeight = 35;
       const sectionSpacing = 2.5;
       const tableSpacing = 2;
-      
-      // Title section with urgent indicator
+      const selectedMode = mode;
+      const shouldTranspose = Boolean(transpose);
+
+      const parseNullableFloat = (value) => {
+        if (value === "" || value === null || value === undefined) return null;
+        const normalizedValue = typeof value === "string" ? value.trim() : value;
+        if (normalizedValue === "-") {
+          return 0;
+        }
+        const parsed = parseFloat(normalizedValue);
+        return Number.isNaN(parsed) ? null : parsed;
+      };
+
+      const parseNullableInt = (value) => {
+        if (value === "" || value === null || value === undefined) return null;
+        const parsed = parseInt(value, 10);
+        return Number.isNaN(parsed) ? null : parsed;
+      };
+
       if (data.urgent) {
         context.fillStyle = "#FF0000";
         context.font = "bold 48px Arial";
@@ -733,13 +838,11 @@ function SpecsInput() {
         context.fillStyle = "#000000";
         context.textAlign = "left";
       }
-      
-      // Header
+
       context.font = "bold 32px Arial";
       context.fillText("OPTICAL PRESCRIPTION", 50, yPosition);
       yPosition += sectionSpacing * lineHeight;
-      
-      // Branch information
+
       if (branchName) {
         context.font = "20px Arial";
         context.fillStyle = "#666666";
@@ -747,15 +850,13 @@ function SpecsInput() {
         yPosition += lineHeight;
         context.fillStyle = "#000000";
       }
-      
+
       yPosition += lineHeight / 2;
-      
-      // Power table header
+
       context.font = "bold 24px Arial";
       context.fillText("POWER SPECIFICATIONS", 50, yPosition);
       yPosition += sectionSpacing * lineHeight;
-      
-      // Column headers with better alignment
+
       context.font = "18px Arial";
       context.fillStyle = "#444444";
       context.fillText("Eye", 50, yPosition);
@@ -763,15 +864,14 @@ function SpecsInput() {
       context.fillText("Cylindrical", 320, yPosition);
       context.fillText("Axis", 480, yPosition);
       yPosition += tableSpacing * lineHeight;
-      
+
       context.fillStyle = "#000000";
       context.font = "22px Arial";
-      
-      // Enhanced cell drawing function
+
       const drawCell = (text, x, y, isError = false) => {
         const cellWidth = 120;
         const cellHeight = 30;
-        
+
         if (isError) {
           context.fillStyle = "#FFCCCC";
           context.fillRect(x - 5, y - 20, cellWidth, cellHeight);
@@ -780,61 +880,111 @@ function SpecsInput() {
           context.fillStyle = "#000000";
           context.strokeStyle = "#000000";
         }
-        
+
         context.fillText(text || "-", x, y);
       };
-      
+
       const powerRows = [
         {
           label: "RIGHT",
           sphValue: data.rightSpherical,
           cylValue: data.rightCylindrical,
           axisValue: data.rightAxis,
+          additionValue: data.rightAddition,
         },
         {
           label: "LEFT",
           sphValue: data.leftSpherical,
           cylValue: data.leftCylindrical,
           axisValue: data.leftAxis,
+          additionValue: data.leftAddition,
         },
       ];
 
       const hasValue = (value) => value !== null && value !== undefined && value !== "";
       let renderedPowerRows = 0;
 
-      powerRows.forEach(({ label, sphValue, cylValue, axisValue }) => {
-        const hasSph = hasValue(sphValue);
-        const hasCyl = hasValue(cylValue);
-        const hasAxis = hasValue(axisValue);
-
-        if (!hasSph && !hasCyl && !hasAxis) {
+      powerRows.forEach(({ label, sphValue, cylValue, axisValue, additionValue }) => {
+        const rowHasData = hasValue(sphValue) || hasValue(cylValue) || hasValue(axisValue);
+        if (!rowHasData) {
           return;
         }
 
-        const numericSph = hasSph ? parseFloat(sphValue) : null;
-        const numericCyl = hasCyl ? parseFloat(cylValue) : null;
-        const sphIsNumeric = numericSph !== null && !Number.isNaN(numericSph);
-        const cylIsNumeric = numericCyl !== null && !Number.isNaN(numericCyl);
+        let workingSph = parseNullableFloat(sphValue);
+        let workingCyl = parseNullableFloat(cylValue);
+        let workingAxis = parseNullableInt(axisValue);
+        const additionNumeric = parseNullableFloat(additionValue);
 
-        let displaySph = sphIsNumeric ? formatSpecsPower(numericSph) : (hasSph ? sphValue : "");
-        let displayCyl = cylIsNumeric ? formatSpecsPower(numericCyl) : (hasCyl ? cylValue : "");
-        let displayAxis = hasAxis ? axisValue : "";
+        if (selectedMode === DISPLAY_MODES.NEAR && additionNumeric !== null) {
+          const baseSphere = workingSph !== null ? workingSph : 0;
+          workingSph = baseSphere + additionNumeric;
+        }
 
-        if (cylIsNumeric && numericCyl === 0) {
+        if (shouldTranspose) {
+          if (workingCyl !== null && workingAxis !== null) {
+            const pivotSph = workingSph !== null ? workingSph : 0;
+            const transposedSph = pivotSph + workingCyl;
+            const transposedCyl = -workingCyl;
+            let transposedAxis = workingAxis <= 90 ? workingAxis + 90 : workingAxis - 90;
+            if (transposedAxis <= 0) transposedAxis += 180;
+            if (transposedAxis > 180) transposedAxis -= 180;
+
+            workingSph = transposedSph;
+            workingCyl = transposedCyl;
+            workingAxis = transposedAxis;
+          } else if (workingCyl !== null && workingAxis === null) {
+            const pivotSph = workingSph !== null ? workingSph : 0;
+            workingSph = pivotSph + workingCyl;
+            workingCyl = -workingCyl;
+          } else if (workingCyl === null && workingAxis !== null) {
+            let transposedAxis = workingAxis <= 90 ? workingAxis + 90 : workingAxis - 90;
+            if (transposedAxis <= 0) transposedAxis += 180;
+            if (transposedAxis > 180) transposedAxis -= 180;
+            workingAxis = transposedAxis;
+          }
+        }
+
+        const sphIsNumeric = workingSph !== null && !Number.isNaN(workingSph);
+        const cylIsNumeric = workingCyl !== null && !Number.isNaN(workingCyl);
+        const axisIsNumeric = workingAxis !== null && !Number.isNaN(workingAxis);
+
+        let displaySph = "";
+        let displayCyl = "";
+        let displayAxis = "";
+
+        if (sphIsNumeric) {
+          displaySph = formatSpecsPower(workingSph);
+        } else if (hasValue(sphValue)) {
+          displaySph = sphValue;
+        }
+
+        if (cylIsNumeric) {
+          displayCyl = formatSpecsPower(workingCyl);
+        } else if (hasValue(cylValue)) {
+          displayCyl = cylValue;
+        }
+
+        if (cylIsNumeric && workingCyl === 0) {
           displayCyl = "";
         }
 
-        const cylinderHasValue = hasCyl && displayCyl !== "";
-        const axisIsBlank = !hasAxis;
-        const sphIsZero = sphIsNumeric && numericSph === 0;
-
-        if (sphIsZero && !cylinderHasValue && axisIsBlank) {
-          displaySph = "PLN";
-        } else if (sphIsZero && cylinderHasValue) {
-          displaySph = "";
+        if (axisIsNumeric) {
+          displayAxis = String(workingAxis);
+        } else if (hasValue(axisValue)) {
+          displayAxis = axisValue;
         }
 
-        const axisError = cylinderHasValue && axisIsBlank;
+        const cylinderHasValue = displayCyl !== "";
+        const axisPresent = axisIsNumeric || hasValue(axisValue);
+        const axisError = cylinderHasValue && !axisPresent;
+
+        if (sphIsNumeric && workingSph === 0) {
+          if (!cylinderHasValue && !axisPresent) {
+            displaySph = "PLN";
+          } else if (cylinderHasValue) {
+            displaySph = "";
+          }
+        }
 
         context.fillText(label, 50, yPosition);
         drawCell(displaySph, 180, yPosition);
@@ -847,29 +997,39 @@ function SpecsInput() {
       if (renderedPowerRows === 0) {
         yPosition += lineHeight;
       }
-      
-      // Addition section
-      if (data.rightAddition || data.leftAddition) {
+
+      const shouldDisplayAdditionSection =
+        selectedMode === DISPLAY_MODES.COMPLETE &&
+        (data.rightAddition || data.leftAddition);
+
+      if (shouldDisplayAdditionSection) {
         yPosition += lineHeight / 2;
         context.font = "bold 20px Arial";
         context.fillText("ADDITION", 50, yPosition);
         yPosition += lineHeight;
-        
+
+        const formatAdditionValue = (value) => {
+          const parsed = parseNullableFloat(value);
+          return parsed !== null ? formatSpecsPower(parsed) : value;
+        };
+
         context.font = "22px Arial";
-        if (data.rightAddition === data.leftAddition && data.rightAddition) {
-          context.fillText(`${formatSpecsPower(data.rightAddition)} (Both Eyes)`, 180, yPosition);
+        const rightAdditionFormatted = data.rightAddition ? formatAdditionValue(data.rightAddition) : "";
+        const leftAdditionFormatted = data.leftAddition ? formatAdditionValue(data.leftAddition) : "";
+
+        if (rightAdditionFormatted && leftAdditionFormatted && rightAdditionFormatted === leftAdditionFormatted) {
+          context.fillText(`${rightAdditionFormatted} (Both Eyes)`, 180, yPosition);
         } else {
-          if (data.rightAddition) {
-            context.fillText(`${formatSpecsPower(data.rightAddition)} (Right)`, 180, yPosition);
+          if (rightAdditionFormatted) {
+            context.fillText(`${rightAdditionFormatted} (Right)`, 180, yPosition);
           }
-          if (data.leftAddition) {
-            context.fillText(`${formatSpecsPower(data.leftAddition)} (Left)`, 350, yPosition);
+          if (leftAdditionFormatted) {
+            context.fillText(`${leftAdditionFormatted} (Left)`, 350, yPosition);
           }
         }
         yPosition += sectionSpacing * lineHeight;
       }
-      
-      // Separator line
+
       yPosition += lineHeight / 2;
       context.beginPath();
       context.moveTo(50, yPosition);
@@ -878,13 +1038,12 @@ function SpecsInput() {
       context.stroke();
       context.strokeStyle = "#000000";
       yPosition += lineHeight;
-      
-      // Additional information section
+
       if (data.lensDescription) {
         context.font = "bold 20px Arial";
         context.fillText("LENS DESCRIPTION:", 50, yPosition);
         yPosition += lineHeight;
-        
+
         context.font = "18px Arial";
         const descLines = divideDescription(data.lensDescription, 60);
         descLines.forEach(line => {
@@ -893,41 +1052,32 @@ function SpecsInput() {
         });
         yPosition += lineHeight / 2;
       }
-      
-      // Customer and supplier information
+
       context.font = "18px Arial";
       if (data.customerName) {
         context.fillText(`Customer: ${data.customerName}`, 50, yPosition);
         yPosition += lineHeight;
       }
-      
+
       if (data.supplierName) {
         context.fillText(`Supplier: ${data.supplierName}`, 50, yPosition);
         yPosition += lineHeight;
       }
-      
-      // Footer with timestamp
+
       yPosition = canvas.height - 40;
       context.font = "14px Arial";
       context.fillStyle = "#888888";
       const timestamp = new Date().toLocaleString();
       context.fillText(`Generated on: ${timestamp}`, 50, yPosition);
-      
-      // Convert canvas to blob
+
       return new Promise((resolve) => {
         canvas.toBlob((blob) => {
           const url = URL.createObjectURL(blob);
+          if (imageUrl) {
+            URL.revokeObjectURL(imageUrl);
+          }
           setImageUrl(url);
           setImageBlob(blob);
-          
-          // Smooth scroll to image
-          // setTimeout(() => {
-          //   const imageElement = document.getElementById('generated-image');
-          //   if (imageElement) {
-          //     imageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          //   }
-          // }, 100);
-          
           resolve();
         });
       });
@@ -935,9 +1085,35 @@ function SpecsInput() {
       console.error("Error generating image:", error);
       alert("Error generating image. Please try again.");
     } finally {
-      setIsGenerating(false);
+      if (showLoading) {
+        setIsGenerating(false);
+      }
     }
-  }, [formatSpecsPower, divideDescription, branchName]);
+  }, [formatSpecsPower, divideDescription, branchName, imageUrl]);
+
+  const handleModeChange = useCallback(async (mode) => {
+    if (!lastGeneratedData || mode === displayMode) {
+      return;
+    }
+
+    setDisplayMode(mode);
+    await generateImage(lastGeneratedData, { mode, transpose: isTranspose, showLoading: false });
+  }, [lastGeneratedData, displayMode, isTranspose, generateImage]);
+
+  const handleTransposeToggle = useCallback(async () => {
+    const nextTranspose = !isTranspose;
+    setIsTranspose(nextTranspose);
+
+    if (!lastGeneratedData) {
+      return;
+    }
+
+    await generateImage(lastGeneratedData, {
+      mode: displayMode,
+      transpose: nextTranspose,
+      showLoading: false,
+    });
+  }, [isTranspose, lastGeneratedData, displayMode, generateImage]);
 
   // Enhanced copy addition functionality
   const handleCopyAddition = useCallback(() => {
@@ -984,7 +1160,7 @@ function SpecsInput() {
       return;
     }
 
-    await generateImage({
+    const generationPayload = {
       customerName: formData.customerName,
       rightSpherical: formData.rightSph,
       rightCylindrical: formData.rightCyl,
@@ -997,7 +1173,13 @@ function SpecsInput() {
       urgent: formData.urgent,
       rightAddition: formData.rightAddition,
       leftAddition: formData.leftAddition,
-    });
+    };
+
+    setDisplayMode(DISPLAY_MODES.COMPLETE);
+    setIsTranspose(false);
+    setLastGeneratedData(generationPayload);
+
+    await generateImage(generationPayload, { mode: DISPLAY_MODES.COMPLETE, transpose: false });
   }, [formData, validateForm, generateImage]);
 
   // Handle save to database
@@ -1025,13 +1207,19 @@ function SpecsInput() {
   // Handle form reset
   const handleReset = useCallback(() => {
     resetForm();
+    if (imageUrl) {
+      URL.revokeObjectURL(imageUrl);
+    }
     setImageUrl(null);
     setImageBlob(null);
     setSuccessMessage("");
+    setDisplayMode(DISPLAY_MODES.COMPLETE);
+    setIsTranspose(false);
+    setLastGeneratedData(null);
     // Scroll to the top of the page wrapper
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
-  }, [resetForm]);
+  }, [resetForm, imageUrl]);
 
   // Handle right click on generated image
   const handleImageRightClick = useCallback((e) => {
@@ -1343,6 +1531,34 @@ function SpecsInput() {
               style={styles.generatedImage}
               onClick={handleImageRightClick}
             />
+            <div style={styles.imageModeButtons}>
+              {DISPLAY_MODE_ORDER.map((modeKey) => (
+                <button
+                  key={modeKey}
+                  type="button"
+                  onClick={() => handleModeChange(modeKey)}
+                  disabled={displayMode === modeKey}
+                  aria-pressed={displayMode === modeKey}
+                  style={{
+                    ...styles.modeButton,
+                    ...(displayMode === modeKey ? styles.modeButtonActive : {}),
+                  }}
+                >
+                  {DISPLAY_MODE_LABELS[modeKey]}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={handleTransposeToggle}
+                aria-pressed={isTranspose}
+                style={{
+                  ...styles.transposeButton,
+                  ...(isTranspose ? styles.transposeButtonActive : {}),
+                }}
+              >
+                {TRANSPOSE_LABEL}
+              </button>
+            </div>
             <div style={{ marginTop: '15px', fontSize: '0.9rem', color: '#6c757d' }}>
               Right-click on the image to save or share
             </div>
