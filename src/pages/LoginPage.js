@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth, db, provider, signInWithPopup } from "../firebase";
+import { auth, db, provider, signInWithPopup, signOut } from "../firebase";
 import { getDoc, doc } from "firebase/firestore";
 import "./LoginPage.css";
 
@@ -36,6 +36,8 @@ const LoginPage = () => {
                 setUser(result.user);
             } else {
                 alert("You are not invited to access this application.");
+                // Log out the unauthorized user
+                await signOut(auth);
             }
         } catch (error) {
             console.error("Error signing in: ", error);
@@ -45,7 +47,7 @@ const LoginPage = () => {
     return (
         <div className="login-container">
             <div className="login-card">
-                <h1 className="login-title">Welcome Back!</h1>
+                <h1 className="login-title">Welcome Back!!!</h1>
                 <p className="login-subtitle">Sign in to access your account</p>
                 {/* Add GIF below */}
                 <div className="gif-container">

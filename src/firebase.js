@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getAuth, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -21,4 +21,4 @@ const analytics = getAnalytics(app);
 
 setPersistence(auth, browserLocalPersistence);
 
-export { auth, provider, signInWithPopup, db, analytics };
+export { auth, provider, signInWithPopup, signOut, db, analytics };

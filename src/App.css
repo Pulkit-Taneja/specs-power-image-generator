@@ -52,7 +52,29 @@
 
 .right-content-container {
   display: flex;
-  justify-content: right; /* Center horizontally */
+  justify-content: flex-end; /* Align to the right */
+  padding: 15px 20px; /* Add padding for better visibility */
+  background-color: #f8f9fa; /* Light background */
+  border-bottom: 1px solid #e9ecef; /* Subtle border */
+  position: sticky; /* Make it stick to the top */
+  top: 0; /* Stick to the very top */
+  z-index: 1000; /* Ensure it's above other content */
+}
+
+.right-content-container button {
+  background-color: #dc3545; /* Red background for logout */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.right-content-container button:hover {
+  background-color: #c82333; /* Darker red on hover */
 }
 
 #copy-addition-btn {
@@ -73,6 +95,8 @@
 
 .power-input-lr-span {
   margin-top: 0.9em;
+  color: #333; /* Dark gray text color for better visibility */
+  font-weight: 500; /* Slightly bold for better readability */
 }
 
 body {
