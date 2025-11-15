@@ -107,6 +107,8 @@ const baseStyles = {
     transition: 'all 0.3s ease',
     outline: 'none',
     minWidth: 0,
+    width: '100%',
+    boxSizing: 'border-box',
   },
   
   inputFocus: {
@@ -123,6 +125,8 @@ const baseStyles = {
     minHeight: '100px',
     fontFamily: 'inherit',
     outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
   },
   
   additionRow: {
