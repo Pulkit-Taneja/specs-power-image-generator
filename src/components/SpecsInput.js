@@ -7,7 +7,7 @@ import Switch from '@mui/material/Switch';
 import { BRANCHES } from "../constants";
 
 // Custom CSS styles as a JavaScript object
-const styles = {
+const baseStyles = {
   pageWrapper: {
     minHeight: '100vh',
     backgroundColor: '#f4f6f9',
@@ -87,7 +87,7 @@ const styles = {
   
   powerTable: {
     display: 'grid',
-    gridTemplateColumns: '80px 1fr 1fr 1fr',
+    gridTemplateColumns: '80px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)',
     gap: '12px',
     alignItems: 'center',
   },
@@ -106,6 +106,7 @@ const styles = {
     borderRadius: '6px',
     transition: 'all 0.3s ease',
     outline: 'none',
+    minWidth: 0,
   },
   
   inputFocus: {
@@ -126,7 +127,7 @@ const styles = {
   
   additionRow: {
     display: 'grid',
-    gridTemplateColumns: '120px 1fr 1fr',
+    gridTemplateColumns: '120px minmax(0, 1fr) minmax(0, 1fr)',
     gap: '12px',
     alignItems: 'center',
     marginTop: '15px',
@@ -297,6 +298,80 @@ styleSheet.textContent = `
 `;
 document.head.appendChild(styleSheet);
 
+const getViewportWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+const useResponsiveStyles = () => {
+  const [viewportWidth, setViewportWidth] = useState(getViewportWidth);
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(getViewportWidth());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return useMemo(() => {
+    const isTablet = viewportWidth <= 900;
+    const isMobile = viewportWidth <= 540;
+
+    return {
+      ...baseStyles,
+      container: {
+        ...baseStyles.container,
+        maxWidth: isTablet ? '100%' : baseStyles.container.maxWidth,
+        padding: isMobile ? '20px 16px' : isTablet ? '26px' : baseStyles.container.padding,
+      },
+      title: {
+        ...baseStyles.title,
+        fontSize: isMobile ? '1.8rem' : isTablet ? '2.2rem' : baseStyles.title.fontSize,
+      },
+      powerTable: {
+        ...baseStyles.powerTable,
+        gridTemplateColumns: isMobile
+          ? '64px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)'
+          : isTablet
+          ? '72px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)'
+          : baseStyles.powerTable.gridTemplateColumns,
+        gap: isMobile ? '8px' : isTablet ? '10px' : baseStyles.powerTable.gap,
+      },
+      eyeLabel: {
+        ...baseStyles.eyeLabel,
+        fontSize: isMobile ? '0.85rem' : isTablet ? '0.95rem' : baseStyles.eyeLabel.fontSize,
+      },
+      input: {
+        ...baseStyles.input,
+        padding: isMobile ? '7px 8px' : isTablet ? '9px 10px' : baseStyles.input.padding,
+        fontSize: isMobile ? '0.85rem' : isTablet ? '0.95rem' : baseStyles.input.fontSize,
+      },
+      additionRow: {
+        ...baseStyles.additionRow,
+        gridTemplateColumns: isMobile
+          ? '90px minmax(0, 1fr) minmax(0, 1fr)'
+          : isTablet
+          ? '110px minmax(0, 1fr) minmax(0, 1fr)'
+          : baseStyles.additionRow.gridTemplateColumns,
+        gap: isMobile ? '8px' : isTablet ? '10px' : baseStyles.additionRow.gap,
+      },
+      copyButton: {
+        ...baseStyles.copyButton,
+        width: isMobile ? '100%' : 'auto',
+      },
+      textarea: {
+        ...baseStyles.textarea,
+        fontSize: isMobile ? '0.9rem' : baseStyles.textarea.fontSize,
+        padding: isMobile ? '10px' : baseStyles.textarea.padding,
+      },
+      section: {
+        ...baseStyles.section,
+        padding: isMobile ? '16px' : baseStyles.section.padding,
+      },
+      form: {
+        ...baseStyles.form,
+        gap: isMobile ? '18px' : baseStyles.form.gap,
+      },
+    };
+  }, [viewportWidth]);
+};
+
 // Custom hook for managing prescription state
 const usePrescriptionState = () => {
   const [formData, setFormData] = useState({
@@ -456,6 +531,7 @@ const useAuthAndBranch = () => {
 function SpecsInput() {
   const { formData, updateField, resetForm, validateForm, errors } = usePrescriptionState();
   const { user, branchName, branchSwitchChecked, handleBranchChange, loading } = useAuthAndBranch();
+  const styles = useResponsiveStyles();
   const [imageUrl, setImageUrl] = useState(null);
   const [imageBlob, setImageBlob] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
