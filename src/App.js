@@ -5,6 +5,7 @@ import { auth } from "./firebase";
 import Header from './components/header'; 
 import SpecsInputPage from './pages/SpecsInputPage';
 import LoginPage from './pages/LoginPage';
+import OrdersListPage from './pages/OrdersListPage';
 // import About from './pages/About';
 import HomePage from './pages/HomePage';
 
@@ -38,6 +39,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} /> Define Home Page
           <Route path="/specs-input" element={<SpecsInputPage />} /> {/* Define Specs Input Page */}
+          <Route path="/orders" element={<OrdersListPage />} /> {/* Define Orders List Page */}
           <Route path="/login" element={<LoginPage />} /> {/* Define About Page */}
         </Routes>
       </main>

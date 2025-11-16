@@ -1385,6 +1385,7 @@ function SpecsInput() {
       urgent: formData.urgent || false,
       input_power: inputPower,
       ordered_power: orderedPower,
+      delivered: false,
     }, uniqueDocumentId);
   }, [
     validateForm,

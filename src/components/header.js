@@ -31,8 +31,10 @@ const Header = () => {
 
     if (user) {
         return (
-            <div className="right-content-container">
-                <button onClick={handleLogout}>Logout</button>
+            <div className="right-content-container" style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 0' }}>
+                <Link to="/specs-input" style={{ textDecoration: 'none', color: '#007bff', fontWeight: '500' }}>New Order</Link>
+                <Link to="/orders" style={{ textDecoration: 'none', color: '#007bff', fontWeight: '500' }}>Orders List</Link>
+                <button onClick={handleLogout} style={{ padding: '8px 16px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Logout</button>
             </div>
                  
         );
