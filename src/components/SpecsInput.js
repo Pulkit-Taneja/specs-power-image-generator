@@ -1027,6 +1027,19 @@ function SpecsInput() {
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
 
+      const FONT_SCALE = 1.3;
+      const scaleValue = (value) => Math.round(value * FONT_SCALE);
+      const setFont = (size, options = {}) => {
+        const { weight = "", family = "Arial" } = options;
+        const weightPart = weight ? `${weight} ` : "";
+        context.font = `${weightPart}${scaleValue(size)}px ${family}`;
+      };
+
+      const cellWidth = scaleValue(120);
+      const cellHeight = scaleValue(30);
+      const cellPaddingX = scaleValue(5);
+      const cellOffsetY = scaleValue(20);
+
       canvas.width = 800;
       canvas.height = 900;
 
@@ -1038,7 +1051,7 @@ function SpecsInput() {
       context.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
 
       context.fillStyle = "#000000";
-      let yPosition = 60;
+      let yPosition = scaleValue(60);
       const lineHeight = 35;
       const sectionSpacing = 2.5;
       const tableSpacing = 2;
@@ -1047,7 +1060,7 @@ function SpecsInput() {
 
       if (data.urgent) {
         context.fillStyle = "#FF0000";
-        context.font = "bold 48px Arial";
+        setFont(48, { weight: "bold" });
         context.textAlign = "center";
         context.fillText("⚠️ URGENT ⚠️", canvas.width / 2, yPosition);
         yPosition += sectionSpacing * lineHeight;
@@ -1055,12 +1068,12 @@ function SpecsInput() {
         context.textAlign = "left";
       }
 
-      context.font = "bold 32px Arial";
+      setFont(32, { weight: "bold" });
       context.fillText("OPTICAL PRESCRIPTION", 50, yPosition);
       yPosition += sectionSpacing * lineHeight;
 
       if (branchName) {
-        context.font = "20px Arial";
+        setFont(20);
         context.fillStyle = "#666666";
         context.fillText(`Branch: ${branchName.toUpperCase()}`, 50, yPosition);
         yPosition += lineHeight;
@@ -1068,7 +1081,7 @@ function SpecsInput() {
       }
 
       if (data.jobCard) {
-        context.font = "20px Arial";
+        setFont(20);
         context.fillStyle = "#333333";
         context.fillText(`Job Card: ${data.jobCard}`, 50, yPosition);
         yPosition += lineHeight;
@@ -1077,11 +1090,11 @@ function SpecsInput() {
 
       yPosition += lineHeight / 2;
 
-      context.font = "bold 24px Arial";
+      setFont(24, { weight: "bold" });
       context.fillText("POWER SPECIFICATIONS", 50, yPosition);
       yPosition += sectionSpacing * lineHeight;
 
-      context.font = "18px Arial";
+      setFont(18);
       context.fillStyle = "#444444";
       context.fillText("Eye", 50, yPosition);
       context.fillText("Spherical", 180, yPosition);
@@ -1090,17 +1103,14 @@ function SpecsInput() {
       yPosition += tableSpacing * lineHeight;
 
       context.fillStyle = "#000000";
-      context.font = "22px Arial";
+      setFont(22);
 
       const drawCell = (text, x, y, isError = false) => {
-        const cellWidth = 120;
-        const cellHeight = 30;
-
         if (isError) {
           context.fillStyle = "#FFCCCC";
-          context.fillRect(x - 5, y - 20, cellWidth, cellHeight);
+          context.fillRect(x - cellPaddingX, y - cellOffsetY, cellWidth, cellHeight);
           context.strokeStyle = "#FF0000";
-          context.strokeRect(x - 5, y - 20, cellWidth, cellHeight);
+          context.strokeRect(x - cellPaddingX, y - cellOffsetY, cellWidth, cellHeight);
           context.fillStyle = "#000000";
           context.strokeStyle = "#000000";
         }
@@ -1138,11 +1148,11 @@ function SpecsInput() {
 
       if (shouldDisplayAdditionSection) {
         yPosition += lineHeight / 2;
-        context.font = "bold 20px Arial";
+        setFont(20, { weight: "bold" });
         context.fillText("ADDITION", 50, yPosition);
         yPosition += lineHeight;
 
-        context.font = "22px Arial";
+        setFont(22);
         const rightAdditionFormatted = additionData?.right || "";
         const leftAdditionFormatted = additionData?.left || "";
 
@@ -1159,30 +1169,33 @@ function SpecsInput() {
         yPosition += sectionSpacing * lineHeight;
       }
 
-      yPosition += lineHeight / 2;
+      // Factoring in extra
+      yPosition -= sectionSpacing * lineHeight;
+
+      yPosition += lineHeight;
       context.beginPath();
       context.moveTo(50, yPosition);
       context.lineTo(750, yPosition);
       context.strokeStyle = "#CCCCCC";
       context.stroke();
       context.strokeStyle = "#000000";
-      yPosition += lineHeight;
+      yPosition += lineHeight * 1.2;
 
       if (data.lensDescription) {
-        context.font = "bold 20px Arial";
-        context.fillText("LENS DESCRIPTION:", 50, yPosition);
-        yPosition += lineHeight;
+        // setFont(28, { weight: "bold" });
+        // context.fillText("LENS DESCRIPTION:", 50, yPosition);
+        // yPosition += lineHeight;
 
-        context.font = "18px Arial";
-        const descLines = divideDescription(data.lensDescription, 60);
+        setFont(26, { weight: "bold" });
+        const descLines = divideDescription(data.lensDescription, 35);
         descLines.forEach(line => {
           context.fillText(line, 50, yPosition);
-          yPosition += lineHeight * 0.8;
+          yPosition += lineHeight;
         });
         yPosition += lineHeight / 2;
       }
 
-      context.font = "18px Arial";
+      setFont(18);
       if (data.customerName) {
         context.fillText(`Customer: ${data.customerName}`, 50, yPosition);
         yPosition += lineHeight;
@@ -1193,8 +1206,8 @@ function SpecsInput() {
         yPosition += lineHeight;
       }
 
-      yPosition = canvas.height - 40;
-      context.font = "14px Arial";
+      yPosition = canvas.height - scaleValue(40);
+      setFont(14);
       context.fillStyle = "#888888";
       const timestamp = new Date().toLocaleString();
       context.fillText(`Generated on: ${timestamp}`, 50, yPosition);
