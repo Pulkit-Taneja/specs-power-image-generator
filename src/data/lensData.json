@@ -1,0 +1,165 @@
+{
+    "Single Vision": {
+        "DriveSafe": {
+            "Standard": {
+                "1.5": "1.5 Zeiss DriveSafe Lenses",
+                "1.59": "1.59 Zeiss DriveSafe Lenses",
+                "1.6": "1.6 Zeiss DriveSafe Lenses",
+                "1.67": "1.67 Zeiss DriveSafe Lenses"
+            },
+            "Individual": {
+                "1.5": "1.5 Zeiss DriveSafe Individual Lenses",
+                "1.59": "1.59 Zeiss DriveSafe Individual Lenses",
+                "1.6": "1.6 Zeiss DriveSafe Individual Lenses",
+                "1.67": "1.67 Zeiss DriveSafe Individual Lenses"
+            }
+        },
+        "ClearView": {
+            "BluGuard": {
+                "1.5": "1.5 Zeiss ClearView BluGuard Lenses",
+                "1.56": "1.56 Zeiss ClearView BluGuard Lenses",
+                "1.59": "1.59 Zeiss ClearView BluGuard Lenses",
+                "1.6": "1.6 Zeiss ClearView BluGuard Lenses",
+                "1.67": "1.67 Zeiss ClearView BluGuard Lenses"
+            },
+            "UV Protect": {
+                "1.56": "1.56 Zeiss ClearView UV Protect Lenses",
+                "1.6": "1.6 Zeiss ClearView UV Protect Lenses",
+                "1.67": "1.67 Zeiss ClearView UV Protect Lenses",
+                "1.74": "1.74 Zeiss ClearView UV Protect Lenses"
+            },
+            "PhotoFusion X": {
+                "1.56": "1.56 Zeiss ClearView PhotoFusion X Lenses - Extra Grey",
+                "1.6": "1.6 Zeiss ClearView PhotoFusion X Lenses - Extra Grey"
+            }
+        }
+    },
+    "Progressive": {
+        "Light 2 D": {
+            "HardCoat UV": {
+                "1.5": "1.5 Zeiss Light 2 D - HardCoat UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 D - HardCoat UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 D - HardCoat UV - Progressive Lenses"
+            },
+            "DuraVision Chrome UV": {
+                "1.5": "1.5 Zeiss Light 2 D - DuraVision Chrome UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 D - DuraVision Chrome UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 D - DuraVision Chrome UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 D - DuraVision Chrome UV - Progressive Lenses"
+            },
+            "DuraVision Platinum UV": {
+                "1.5": "1.5 Zeiss Light 2 D - DuraVision Platinum UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 D - DuraVision Platinum UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 D - DuraVision Platinum UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 D - DuraVision Platinum UV - Progressive Lenses"
+            },
+            "DuraVision BlueProtect UV": {
+                "1.5": "1.5 Zeiss Light 2 D - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 D - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 D - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 D - DuraVision BlueProtect UV - Progressive Lenses"
+            },
+            "DuraVision Gold UV": {
+                "1.5": "1.5 Zeiss Light 2 D - DuraVision Gold UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 D - DuraVision Gold UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 D - DuraVision Gold UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 D - DuraVision Gold UV - Progressive Lenses"
+            }
+        },
+        "Light 2 3D": {
+            "HardCoat UV": {
+                "1.5": "1.5 Zeiss Light 2 3D - HardCoat UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 3D - HardCoat UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 3D - HardCoat UV - Progressive Lenses"
+            },
+            "DuraVision Chrome UV": {
+                "1.5": "1.5 Zeiss Light 2 3D - DuraVision Chrome UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 3D - DuraVision Chrome UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 3D - DuraVision Chrome UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 3D - DuraVision Chrome UV - Progressive Lenses"
+            },
+            "DuraVision Platinum UV": {
+                "1.5": "1.5 Zeiss Light 2 3D - DuraVision Platinum UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 3D - DuraVision Platinum UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 3D - DuraVision Platinum UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 3D - DuraVision Platinum UV - Progressive Lenses"
+            },
+            "DuraVision BlueProtect UV": {
+                "1.5": "1.5 Zeiss Light 2 3D - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 3D - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 3D - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 3D - DuraVision BlueProtect UV - Progressive Lenses"
+            },
+            "DuraVision Gold UV": {
+                "1.5": "1.5 Zeiss Light 2 3D - DuraVision Gold UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 3D - DuraVision Gold UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 3D - DuraVision Gold UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 3D - DuraVision Gold UV - Progressive Lenses"
+            }
+        },
+        "Light 2 3DV": {
+            "HardCoat UV": {
+                "1.5": "1.5 Zeiss Light 2 3DV - HardCoat UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 3DV - HardCoat UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 3DV - HardCoat UV - Progressive Lenses"
+            },
+            "DuraVision Chrome UV": {
+                "1.5": "1.5 Zeiss Light 2 3DV - DuraVision Chrome UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 3DV - DuraVision Chrome UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 3DV - DuraVision Chrome UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 3DV - DuraVision Chrome UV - Progressive Lenses"
+            },
+            "DuraVision Platinum UV": {
+                "1.5": "1.5 Zeiss Light 2 3DV - DuraVision Platinum UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 3DV - DuraVision Platinum UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 3DV - DuraVision Platinum UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 3DV - DuraVision Platinum UV - Progressive Lenses",
+                "1.74": "1.74 Zeiss Light 2 3DV - DuraVision Platinum UV - Progressive Lenses"
+            },
+            "DuraVision BlueProtect UV": {
+                "1.5": "1.5 Zeiss Light 2 3DV - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 3DV - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 3DV - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 3DV - DuraVision BlueProtect UV - Progressive Lenses"
+            },
+            "DuraVision Gold UV": {
+                "1.5": "1.5 Zeiss Light 2 3DV - DuraVision Gold UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss Light 2 3DV - DuraVision Gold UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss Light 2 3DV - DuraVision Gold UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss Light 2 3DV - DuraVision Gold UV - Progressive Lenses",
+                "1.74": "1.74 Zeiss Light 2 3DV - DuraVision Gold UV - Progressive Lenses"
+            }
+        },
+        "GT2 Freeform": {
+            "HardCoat UV": {
+                "1.5": "1.5 Zeiss GT2 Freeform - HardCoat UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss GT2 Freeform - HardCoat UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss GT2 Freeform - HardCoat UV - Progressive Lenses"
+            },
+            "DuraVision Chrome UV": {
+                "1.5": "1.5 Zeiss GT2 Freeform - DuraVision Chrome UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss GT2 Freeform - DuraVision Chrome UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss GT2 Freeform - DuraVision Chrome UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss GT2 Freeform - DuraVision Chrome UV - Progressive Lenses"
+            },
+            "DuraVision Platinum UV": {
+                "1.5": "1.5 Zeiss GT2 Freeform - DuraVision Platinum UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss GT2 Freeform - DuraVision Platinum UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss GT2 Freeform - DuraVision Platinum UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss GT2 Freeform - DuraVision Platinum UV - Progressive Lenses"
+            },
+            "DuraVision BlueProtect UV": {
+                "1.5": "1.5 Zeiss GT2 Freeform - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss GT2 Freeform - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss GT2 Freeform - DuraVision BlueProtect UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss GT2 Freeform - DuraVision BlueProtect UV - Progressive Lenses"
+            },
+            "DuraVision Gold UV": {
+                "1.5": "1.5 Zeiss GT2 Freeform - DuraVision Gold UV - Progressive Lenses",
+                "1.59": "1.59 Zeiss GT2 Freeform - DuraVision Gold UV - Progressive Lenses",
+                "1.6": "1.6 Zeiss GT2 Freeform - DuraVision Gold UV - Progressive Lenses",
+                "1.67": "1.67 Zeiss GT2 Freeform - DuraVision Gold UV - Progressive Lenses"
+            }
+        }
+    }
+}

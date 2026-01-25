@@ -5,6 +5,9 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import Switch from '@mui/material/Switch';
 import { BRANCHES } from "../constants";
+import { generatePrescriptionPDF } from "../utils/pdfGenerator";
+import { lensDataService } from '../services/lensDataService';
+import { migrateDataToFirestore, checkFirestoreData } from '../utils/migration';
 
 // Custom CSS styles as a JavaScript object
 const baseStyles = {
@@ -664,6 +667,68 @@ function SpecsInput() {
   const [displayMode, setDisplayMode] = useState(DISPLAY_MODES.COMPLETE);
   const [isTranspose, setIsTranspose] = useState(false);
   const [lastGeneratedData, setLastGeneratedData] = useState(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [rightVision, setRightVision] = useState('');
+  const [leftVision, setLeftVision] = useState('');
+  const [customDate, setCustomDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Load lens and upgrades data from Firestore
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoadingData(true);
+        setDataError(null);
+        
+        // Check if data exists in Firestore
+        const dataStatus = await checkFirestoreData();
+        
+        // If no data in Firestore, migrate from JSON files
+        if (!dataStatus.hasLensData || !dataStatus.hasUpgradesData) {
+          console.log('No data found in Firestore, migrating from JSON files...');
+          await migrateDataToFirestore();
+        }
+        
+        // Load data from Firestore
+        const [lensDataFromFirestore, upgradesDataFromFirestore] = await Promise.all([
+          lensDataService.getLensData(),
+          lensDataService.getUpgradesData()
+        ]);
+        
+        setLensData(lensDataFromFirestore);
+        setUpgradesData(upgradesDataFromFirestore);
+        
+        console.log('✅ Data loaded successfully from Firestore');
+      } catch (error) {
+        console.error('❌ Error loading data:', error);
+        setDataError('Failed to load lens data. Please refresh the page.');
+        
+        // Fallback to service's fallback data
+        try {
+          const fallbackLensData = lensDataService.getFallbackLensData();
+          const fallbackUpgradesData = lensDataService.getFallbackUpgradesData();
+          setLensData(fallbackLensData);
+          setUpgradesData(fallbackUpgradesData);
+          console.log('Using fallback data from JSON files');
+        } catch (fallbackError) {
+          console.error('Failed to load fallback data:', fallbackError);
+        }
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+    
+    loadData();
+  }, []);
+  const [isLensModalOpen, setIsLensModalOpen] = useState(false);
+  const [lensModalPath, setLensModalPath] = useState([]);
+  const [lensModalOptions, setLensModalOptions] = useState({});
+  const [isUpgradesModalOpen, setIsUpgradesModalOpen] = useState(false);
+  const [upgradesModalPath, setUpgradesModalPath] = useState([]);
+  const [upgradesModalOptions, setUpgradesModalOptions] = useState({});
+  const [lensData, setLensData] = useState({});
+  const [upgradesData, setUpgradesData] = useState({});
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [dataError, setDataError] = useState(null);
 
   // Utility functions
   const formatSpecsPower = useCallback((input) => {
@@ -1413,6 +1478,45 @@ function SpecsInput() {
     setErrors,
   ]);
 
+  // Handle PDF generation
+  const handleGeneratePDF = useCallback(async () => {
+    setIsGeneratingPDF(true);
+    try {
+      const pdfData = {
+        customerName: formData.customerName,
+        jobCard: formData.jobCard,
+        branchName: branchName,
+        rightSph: formData.rightSph,
+        rightCyl: formData.rightCyl,
+        rightAxis: formData.rightAxis,
+        leftSph: formData.leftSph,
+        leftCyl: formData.leftCyl,
+        leftAxis: formData.leftAxis,
+        rightAddition: formData.rightAddition,
+        leftAddition: formData.leftAddition,
+        rightVision: rightVision,
+        leftVision: leftVision,
+        remarks: formData.lensDescription,
+        date: new Date(customDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+      };
+      
+      await generatePrescriptionPDF(pdfData);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  }, [formData, branchName, rightVision, leftVision, customDate]);
+
+  const handleDateChange = (e) => {
+    const newValue = e.target.value;
+    console.log('Date input value:', newValue);
+    console.log('Date input type:', typeof newValue);
+    console.log('Setting customDate to:', newValue);
+    setCustomDate(newValue);
+  };
+
   // Handle form reset
   const handleReset = useCallback(() => {
     resetForm();
@@ -1425,6 +1529,9 @@ function SpecsInput() {
     setDisplayMode(DISPLAY_MODES.COMPLETE);
     setIsTranspose(false);
     setLastGeneratedData(null);
+    setRightVision('');
+    setLeftVision('');
+    setCustomDate(new Date().toISOString().split('T')[0]);
     // Scroll to the top of the page wrapper
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
@@ -1440,11 +1547,14 @@ function SpecsInput() {
     e.target.dispatchEvent(rightClickEvent);
   }, []);
 
-  if (loading) {
+  if (loading || isLoadingData) {
     return (
       <div style={{ ...styles.container, textAlign: 'center' }}>
         <div style={styles.loadingSpinner}></div>
         <p>Loading...</p>
+        {dataError && (
+          <div style={styles.errorText}>{dataError}</div>
+        )}
       </div>
     );
   }
@@ -1626,6 +1736,28 @@ function SpecsInput() {
             <div style={{ fontSize: '0.8rem', color: '#6c757d', textAlign: 'right' }}>
               {formData.lensDescription.length}/142 characters
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                setLensModalPath([]);
+                setLensModalOptions(lensData);
+                setIsLensModalOpen(true);
+              }}
+              style={{ ...styles.button, ...styles.secondaryButton, marginTop: '10px' }}
+            >
+              🔍 Find Different Lenses
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setUpgradesModalPath([]);
+                setUpgradesModalOptions(upgradesData);
+                setIsUpgradesModalOpen(true);
+              }}
+              style={{ ...styles.button, ...styles.secondaryButton, marginTop: '10px', marginLeft: '10px' }}
+            >
+              ➕ Add Upgrades
+            </button>
           </div>
 
           {/* Customer Information Section */}
@@ -1738,6 +1870,23 @@ function SpecsInput() {
             >
               🔄 Reset Form
             </button>
+            
+            <button
+              type="button"
+              onClick={handleGeneratePDF}
+              disabled={isGeneratingPDF}
+              style={{ ...styles.button, ...styles.primaryButton }}
+              className="hover-primary"
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <span style={styles.loadingSpinner}></span>
+                  <span style={{ marginLeft: '8px' }}>Generating...</span>
+                </>
+              ) : (
+                '📄 Generate Patient Prescription'
+              )}
+            </button>
           </div>
 
           {/* Success Message */}
@@ -1747,6 +1896,67 @@ function SpecsInput() {
             </div>
           )}
         </form>
+
+        {/* Extra Vision Details Section */}
+        <div style={{ ...styles.section, marginTop: '30px' }}>
+          <h3 style={styles.sectionTitle}>
+            👁️ Extra Vision Details
+          </h3>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Right Vision:
+              </label>
+              <select
+                value={rightVision}
+                onChange={(e) => setRightVision(e.target.value)}
+                style={styles.input}
+              >
+                <option value=""></option>
+                <option value="6/6">6/6</option>
+                <option value="6/9">6/9</option>
+                <option value="6/12">6/12</option>
+                <option value="6/18">6/18</option>
+                <option value="6/24">6/24</option>
+                <option value="6/36">6/36</option>
+                <option value="6/60">6/60</option>
+              </select>
+            </div>
+            
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Left Vision:
+              </label>
+              <select
+                value={leftVision}
+                onChange={(e) => setLeftVision(e.target.value)}
+                style={styles.input}
+              >
+                <option value=""></option>
+                <option value="6/6">6/6</option>
+                <option value="6/9">6/9</option>
+                <option value="6/12">6/12</option>
+                <option value="6/18">6/18</option>
+                <option value="6/24">6/24</option>
+                <option value="6/36">6/36</option>
+                <option value="6/60">6/60</option>
+              </select>
+            </div>
+          </div>
+          
+          <div style={{ marginTop: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Custom Date:
+            </label>
+            <input
+              type="date"
+              value={customDate}
+              onChange={handleDateChange}
+              style={styles.input}
+            />
+          </div>
+        </div>
 
         {/* Generated Image Section */}
         {imageUrl && (
@@ -1791,6 +2001,276 @@ function SpecsInput() {
             </div>
             <div style={{ marginTop: '15px', fontSize: '0.9rem', color: '#6c757d' }}>
               Right-click on the image to save or share
+            </div>
+          </div>
+        )}
+
+        {/* Lens Selection Modal */}
+        {isLensModalOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000,
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: 'white',
+                padding: '20px',
+                borderRadius: '8px',
+                maxWidth: '600px',
+                maxHeight: '80%',
+                overflow: 'auto',
+                width: '90%',
+              }}
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setIsLensModalOpen(false)}
+                style={{
+                  float: 'right',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                }}
+              >
+                ×
+              </button>
+
+              {/* Breadcrumbs */}
+              <div style={{ marginBottom: '20px', clear: 'both' }}>
+                <strong>Breadcrumbs: </strong>
+                <span
+                  style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}
+                  onClick={() => {
+                    setLensModalPath([]);
+                    setLensModalOptions(lensData);
+                  }}
+                >
+                  Brands
+                </span>
+                {lensModalPath.map((part, index) => (
+                  <span key={index}>
+                    {' > '}
+                    <span
+                      style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}
+                      onClick={() => {
+                        const newPath = lensModalPath.slice(0, index + 1);
+                        setLensModalPath(newPath);
+                        let current = lensData;
+                        for (const p of newPath) {
+                          current = current[p];
+                        }
+                        setLensModalOptions(current);
+                      }}
+                    >
+                      {part}
+                    </span>
+                  </span>
+                ))}
+              </div>
+
+              {/* Back button */}
+              {lensModalPath.length > 0 && (
+                <button
+                  onClick={() => {
+                    const newPath = lensModalPath.slice(0, -1);
+                    setLensModalPath(newPath);
+                    let current = lensData;
+                    for (const p of newPath) {
+                      current = current[p];
+                    }
+                    setLensModalOptions(current);
+                  }}
+                  style={{
+                    padding: '10px',
+                    fontSize: '16px',
+                    backgroundColor: '#ddd',
+                    border: '1px solid #ccc',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    marginBottom: '10px',
+                  }}
+                >
+                  ← Back
+                </button>
+              )}
+
+              {/* Options */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {Object.keys(lensModalOptions).map(key => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      const value = lensModalOptions[key];
+                      if (typeof value === 'string') {
+                        // Terminal option
+                        updateField('lensDescription', value);
+                        setIsLensModalOpen(false);
+                      } else {
+                        // Go deeper
+                        setLensModalPath([...lensModalPath, key]);
+                        setLensModalOptions(value);
+                      }
+                    }}
+                    style={{
+                      padding: '20px',
+                      fontSize: '18px',
+                      backgroundColor: '#f0f0f0',
+                      border: '1px solid #ccc',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {key}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Upgrades Selection Modal */}
+        {isUpgradesModalOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000,
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: 'white',
+                padding: '20px',
+                borderRadius: '8px',
+                maxWidth: '600px',
+                maxHeight: '80%',
+                overflow: 'auto',
+                width: '90%',
+              }}
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setIsUpgradesModalOpen(false)}
+                style={{
+                  float: 'right',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                }}
+              >
+                ×
+              </button>
+
+              {/* Breadcrumbs */}
+              <div style={{ marginBottom: '20px', clear: 'both' }}>
+                <strong>Breadcrumbs: </strong>
+                <span
+                  style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}
+                  onClick={() => {
+                    setUpgradesModalPath([]);
+                    setUpgradesModalOptions(upgradesData);
+                  }}
+                >
+                  Brands
+                </span>
+                {upgradesModalPath.map((part, index) => (
+                  <span key={index}>
+                    {' > '}
+                    <span
+                      style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}
+                      onClick={() => {
+                        const newPath = upgradesModalPath.slice(0, index + 1);
+                        setUpgradesModalPath(newPath);
+                        let current = upgradesData;
+                        for (const p of newPath) {
+                          current = current[p];
+                        }
+                        setUpgradesModalOptions(current);
+                      }}
+                    >
+                      {part}
+                    </span>
+                  </span>
+                ))}
+              </div>
+
+              {/* Back button */}
+              {upgradesModalPath.length > 0 && (
+                <button
+                  onClick={() => {
+                    const newPath = upgradesModalPath.slice(0, -1);
+                    setUpgradesModalPath(newPath);
+                    let current = upgradesData;
+                    for (const p of newPath) {
+                      current = current[p];
+                    }
+                    setUpgradesModalOptions(current);
+                  }}
+                  style={{
+                    padding: '10px',
+                    fontSize: '16px',
+                    backgroundColor: '#ddd',
+                    border: '1px solid #ccc',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    marginBottom: '10px',
+                  }}
+                >
+                  ← Back
+                </button>
+              )}
+
+              {/* Options */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {Object.keys(upgradesModalOptions).map(key => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      const value = upgradesModalOptions[key];
+                      if (typeof value === 'string') {
+                        // Terminal option - append to lens description
+                        const currentDesc = formData.lensDescription || '';
+                        const newDesc = currentDesc ? `${currentDesc} ${value}` : value;
+                        updateField('lensDescription', newDesc);
+                        setIsUpgradesModalOpen(false);
+                      } else {
+                        // Go deeper
+                        setUpgradesModalPath([...upgradesModalPath, key]);
+                        setUpgradesModalOptions(value);
+                      }
+                    }}
+                    style={{
+                      padding: '20px',
+                      fontSize: '18px',
+                      backgroundColor: '#f0f0f0',
+                      border: '1px solid #ccc',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {key}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}

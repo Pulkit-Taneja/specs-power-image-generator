@@ -6,6 +6,7 @@ import Header from './components/header';
 import SpecsInputPage from './pages/SpecsInputPage';
 import LoginPage from './pages/LoginPage';
 import OrdersListPage from './pages/OrdersListPage';
+import AdminLensManager from './components/AdminLensManager';
 // import About from './pages/About';
 import HomePage from './pages/HomePage';
 
@@ -40,6 +41,7 @@ function App() {
           <Route path="/" element={<HomePage />} /> Define Home Page
           <Route path="/specs-input" element={<SpecsInputPage />} /> {/* Define Specs Input Page */}
           <Route path="/orders" element={<OrdersListPage />} /> {/* Define Orders List Page */}
+          <Route path="/admin/lens-manager" element={<AdminLensManager />} /> {/* Define Admin Lens Manager Page */}
           <Route path="/login" element={<LoginPage />} /> {/* Define About Page */}
         </Routes>
       </main>

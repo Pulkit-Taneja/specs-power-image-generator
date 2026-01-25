@@ -1,0 +1,50 @@
+
+Single Vision
+    - SmartLife
+    - Rx
+    - ClearView (Finished Single Vision)
+    - ClassicPlus (Finished Single Vision)
+    - Finished Single Vision
+    - Myocare
+    - Myocare Rx
+    - DriveSafe
+        - Standard
+        - Individual
+
+Progressive
+    - SmartLife
+        - Individual 3
+        - Individual
+        - Superb
+        - Plus
+        - Pure
+    - Precision
+        - Individual 2
+        - Superb
+        - Plus
+        - Pure
+    - Light-2
+        - 3Dve
+        - 3Dv
+        - 3D
+        - D
+    - ClassicPlus
+        - V
+        - ""
+    - GT2 Freeform
+    - Digital SmartLife
+        - Individual 3
+        - Individual
+        - ""
+    - Digital Light-2
+        - 3Dve
+        - 3D
+    - DriveSafe Progressive
+        - Standard
+        - Individual
+    - Office
+        - Individual
+        - Superb
+        - Plus
+
+Bifocal

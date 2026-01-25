@@ -1,0 +1,106 @@
+{
+    "Zeiss": {
+        "AdaptiveSun": {
+            "Polarized Tints": {
+                "Grey": "with AdaptiveSun - Grey Polarized Tint",
+                "Brown": "with AdaptiveSun - Brown Polarized Tint",
+                "Pioneer": "with AdaptiveSun - Pioneer Polarized Tint"
+            },
+            "Solid Tints": {
+                "Blue": "with AdaptiveSun - Blue Solid Tint",
+                "Brown": "with AdaptiveSun - Brown Solid Tint",
+                "Grey": "with AdaptiveSun - Grey Solid Tint",
+                "Pioneer": "with AdaptiveSun - Pioneer Solid Tint"
+            },
+            "Gradient Tints": {
+                "Brown": "with AdaptiveSun - Brown Gradient Tint",
+                "Grey": "with AdaptiveSun - Grey Gradient Tint",
+                "Pioneer": "with AdaptiveSun - Pioneer Gradient Tint",
+                "Blue": "with AdaptiveSun - Blue Gradient Tint"
+            }
+        },
+        "PhotoFusion X": {
+            "Burgundy": "with PhotoFusion X Burgundy",
+            "Black": "with PhotoFusion X Black",
+            "Grey": "with PhotoFusion X Grey",
+            "Extra Grey": "with PhotoFusion X Extra Grey",
+            "Brown": "with PhotoFusion X Brown",
+            "Pioneer": "with PhotoFusion X Pioneer",
+            "Blue": "with PhotoFusion X Blue"
+        },
+        "Polarised": {
+            "Skylet Fun": "with Polarised - Skylet Fun",
+            "Skylet Sport": "with Polarised - Skylet Sport",
+            "Skylet Road": "with Polarised - Skylet Road",
+            "Pioneer": "with Polarised - Pioneer",
+            "Brown": "with Polarised - Brown",
+            "Grey": "with Polarised - Grey"
+        },
+        "Tint": {
+            "Black": {
+                "12%": "with Tint - Black 12%",
+                "25%": "with Tint - Black 25%",
+                "60%": "with Tint - Black 60%",
+                "75%": "with Tint - Black 75%",
+                "85%": "with Tint - Black 85%",
+                "95%": "with Tint - Black 95%"
+            },
+            "Brown": {
+                "12%": "with Tint - Brown 12%",
+                "25%": "with Tint - Brown 25%",
+                "60%": "with Tint - Brown 60%",
+                "75%": "with Tint - Brown 75%",
+                "85%": "with Tint - Brown 85%",
+                "95%": "with Tint - Brown 95%"
+            },
+            "Grey": {
+                "12%": "with Tint - Grey 12%",
+                "25%": "with Tint - Grey 25%",
+                "60%": "with Tint - Grey 60%",
+                "75%": "with Tint - Grey 75%",
+                "85%": "with Tint - Grey 85%",
+                "95%": "with Tint - Grey 95%"
+            },
+            "Pioneer": {
+                "12%": "with Tint - Pioneer 12%",
+                "25%": "with Tint - Pioneer 25%",
+                "60%": "with Tint - Pioneer 60%",
+                "75%": "with Tint - Pioneer 75%",
+                "85%": "with Tint - Pioneer 85%",
+                "95%": "with Tint - Pioneer 95%"
+            },
+            "Dusk Grey": {
+                "12%": "with Tint - Dusk Grey 12%",
+                "25%": "with Tint - Dusk Grey 25%",
+                "60%": "with Tint - Dusk Grey 60%",
+                "75%": "with Tint - Dusk Grey 75%",
+                "85%": "with Tint - Dusk Grey 85%",
+                "95%": "with Tint - Dusk Grey 95%"
+            },
+            "Midnight Blue": {
+                "12%": "with Tint - Midnight Blue 12%",
+                "25%": "with Tint - Midnight Blue 25%",
+                "60%": "with Tint - Midnight Blue 60%",
+                "75%": "with Tint - Midnight Blue 75%",
+                "85%": "with Tint - Midnight Blue 85%",
+                "95%": "with Tint - Midnight Blue 95%"
+            },
+            "Burgundy": {
+                "12%": "with Tint - Burgundy 12%",
+                "25%": "with Tint - Burgundy 25%",
+                "60%": "with Tint - Burgundy 60%",
+                "75%": "with Tint - Burgundy 75%",
+                "85%": "with Tint - Burgundy 85%",
+                "95%": "with Tint - Burgundy 95%"
+            },
+            "Cooper Brown": {
+                "12%": "with Tint - Cooper Brown 12%",
+                "25%": "with Tint - Cooper Brown 25%",
+                "60%": "with Tint - Cooper Brown 60%",
+                "75%": "with Tint - Cooper Brown 75%",
+                "85%": "with Tint - Cooper Brown 85%",
+                "95%": "with Tint - Cooper Brown 95%"
+            }
+        }
+    }
+}

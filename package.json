@@ -13,6 +13,7 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "firebase": "^11.0.2",
+    "jspdf": "^4.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
@@ -24,6 +25,9 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "build": "react-scripts build",
+    "firebase:build": "npm run build",
+    "firebase:deploy": "firebase deploy",
+    "firebase:build-deploy": "npm run build && firebase deploy",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
