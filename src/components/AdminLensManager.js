@@ -11,6 +11,8 @@ const AdminLensManager = () => {
   const [newDataJson, setNewDataJson] = useState('');
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
+  const [editingBrand, setEditingBrand] = useState(null);
+  const [editDataJson, setEditDataJson] = useState('');
 
   const styles = {
     container: {
@@ -232,6 +234,52 @@ const AdminLensManager = () => {
     }
   };
 
+  const handleEditData = (brandName) => {
+    const currentData = getCurrentData();
+    const brandData = currentData[brandName];
+
+    if (brandData) {
+      setEditingBrand(brandName);
+      setEditDataJson(JSON.stringify(brandData, null, 2));
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingBrand) return;
+
+    if (!editDataJson.trim()) {
+      showMessage('Please enter JSON data', 'error');
+      return;
+    }
+
+    try {
+      const parsedData = JSON.parse(editDataJson);
+
+      if (selectedTab === 'lens') {
+        await lensDataService.updateLensData(editingBrand, parsedData);
+        showMessage(`Lens data for ${editingBrand} updated successfully!`, 'success');
+      } else {
+        await lensDataService.updateUpgradesData(editingBrand, parsedData);
+        showMessage(`Upgrades data for ${editingBrand} updated successfully!`, 'success');
+      }
+
+      setEditingBrand(null);
+      setEditDataJson('');
+      await loadData();
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        showMessage('Invalid JSON format. Please check your JSON syntax.', 'error');
+      } else {
+        showMessage('Error updating data: ' + error.message, 'error');
+      }
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingBrand(null);
+    setEditDataJson('');
+  };
+
   if (loading) {
     return (
       <div style={styles.container}>
@@ -317,17 +365,53 @@ const AdminLensManager = () => {
                     {Object.keys(getCurrentData()[brandName]).length} categories
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDeleteData(brandName)}
-                  style={{ ...styles.button, ...styles.dangerButton }}
-                >
-                  Delete
-                </button>
+                <div>
+                  <button
+                    onClick={() => handleEditData(brandName)}
+                    style={{ ...styles.button, ...styles.primaryButton, marginRight: '5px' }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteData(brandName)}
+                    style={{ ...styles.button, ...styles.dangerButton }}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))
           )}
         </div>
       </div>
+
+      {editingBrand && (
+        <div style={styles.section}>
+          <h3>Edit {editingBrand} {selectedTab === 'lens' ? 'Lens' : 'Upgrades'} Data</h3>
+          
+          <textarea
+            placeholder={`Edit JSON structure for ${editingBrand} ${selectedTab} data...`}
+            value={editDataJson}
+            onChange={(e) => setEditDataJson(e.target.value)}
+            style={styles.textarea}
+          />
+          
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              onClick={handleCancelEdit}
+              style={{ ...styles.button, ...styles.dangerButton, marginRight: '10px' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveEdit}
+              style={{ ...styles.button, ...styles.successButton }}
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      )}
 
       <div style={styles.section}>
         <h3>Data Structure Guide</h3>

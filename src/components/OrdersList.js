@@ -712,7 +712,7 @@ const OrdersList = () => {
                   <div style={styles.detailRow}>
                     <span style={styles.detailLabel}>Lens Description:</span>
                     <span style={styles.detailValue}>
-                      {order.lensDescription || 'N/A'}
+                      {`${order.lensDescription}${order.quantity ? ` - ${order.quantity} ${order.quantityUnit || ''}` : ''}` || 'N/A'}
                     </span>
                   </div>
                   

@@ -671,6 +671,8 @@ function SpecsInput() {
   const [rightVision, setRightVision] = useState('');
   const [leftVision, setLeftVision] = useState('');
   const [customDate, setCustomDate] = useState(new Date().toISOString().split('T')[0]);
+  const [quantity, setQuantity] = useState(1);
+  const [quantityUnit, setQuantityUnit] = useState('pair');
 
   // Load lens and upgrades data from Firestore
   useEffect(() => {
@@ -962,7 +964,9 @@ function SpecsInput() {
     urgent: formData.urgent,
     rightAddition: formData.rightAddition,
     leftAddition: formData.leftAddition,
-  }), [formData]);
+    quantity: quantity,
+    quantityUnit: quantityUnit,
+  }), [formData, quantity, quantityUnit]);
 
   const handlePowerInputChange = useCallback((field) => (event) => {
     const { value } = event.target;
@@ -1095,6 +1099,23 @@ function SpecsInput() {
     if (currentLine) lines.push(currentLine.trim());
     return lines;
   }, []);
+
+  const getQuantityLabel = (quantity) => {
+    return quantity === 0.5 ? 'Half' : quantity;
+  }
+
+  const getQuantityUnitLabel = (unit, quantity) => {
+    switch (unit) {
+      case 'pair':
+        return quantity <= 1 ? 'Pair' : 'Pairs';
+      case 'box':
+        return quantity <= 1 ? 'Box 📦' : 'Boxes 📦';
+      case 'piece':
+        return quantity <= 1 ? 'Piece' : 'Pieces';
+      default:
+        return unit;
+    }
+  }
 
   // Enhanced image generation function
   const generateImage = useCallback(async (data, options = {}) => {
@@ -1274,6 +1295,15 @@ function SpecsInput() {
           yPosition += lineHeight;
         });
         yPosition += lineHeight / 2;
+      }
+
+      // Display Quantity Information with highlighting
+      if (data.quantity && data.quantityUnit) {
+        setFont(20, { weight: "bold" });
+        context.fillStyle = "#667eea"; // Highlight color
+        context.fillText(`Quantity: ${getQuantityLabel(data.quantity)} ${getQuantityUnitLabel(data.quantityUnit, data.quantity)}`, 50, yPosition);
+        yPosition += lineHeight;
+        context.fillStyle = "#000000"; // Reset to black
       }
 
       setFont(18);
@@ -1480,6 +1510,8 @@ function SpecsInput() {
       input_power: inputPower,
       ordered_power: orderedPower,
       delivered: false,
+      quantity: quantity,
+      quantityUnit: quantityUnit,
     }, uniqueDocumentId);
   }, [
     validateForm,
@@ -1780,6 +1812,146 @@ function SpecsInput() {
             >
               ➕ Add Upgrades
             </button>
+
+            {/* Quantity Input Section */}
+            <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e9ecef' }}>
+              <h4 style={{ marginBottom: '15px', fontSize: '1.1rem', fontWeight: '600', color: '#495057' }}>Quantity</h4>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
+                {/* Minus Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (quantity === 1) {
+                      setQuantity(0.5);
+                    } else if (quantity === 0.5) {
+                      // Don't change when already at minimum
+                      return;
+                    } else if (quantity > 1) {
+                      setQuantity(quantity - 1);
+                    }
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '1.6rem',
+                    minWidth: '50px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  -
+                </button>
+
+                {/* Quantity Input */}
+                <input
+                  type="float"
+                  value={quantity || 1}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 1;
+                    setQuantity(Math.max(0, value));
+                  }}
+                  min="0"
+                  style={{
+                    ...styles.input,
+                    width: '80px',
+                    textAlign: 'center',
+                    fontSize: '1.1rem',
+                    fontWeight: '600'
+                  }}
+                />
+
+                {/* Plus Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (quantity === 0.5) {
+                      setQuantity(1);
+                    } else {
+                      const newQuantity = (quantity || 1) + 1;
+                      setQuantity(newQuantity);
+                    }
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#6c757d',
+                    paddingTop: '7px',
+                    paddingBottom: '9px',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '1.6rem',
+                    minWidth: '50px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: '80px'
+                  }}
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Unit Selection Radio Buttons */}
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="quantityUnit"
+                    value="pair"
+                    checked={quantityUnit === 'pair'}
+                    onChange={() => setQuantityUnit('pair')}
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      accentColor: '#667eea',
+                      cursor: 'pointer'
+                    }}
+                  />
+                  <span style={{ fontSize: '1rem', fontWeight: '500' }}>Pair</span>
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="quantityUnit"
+                    value="box"
+                    checked={quantityUnit === 'box'}
+                    onChange={() => setQuantityUnit('box')}
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      accentColor: '#667eea',
+                      cursor: 'pointer'
+                    }}
+                  />
+                  <span style={{ fontSize: '1rem', fontWeight: '500' }}>Box</span>
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="quantityUnit"
+                    value="piece"
+                    checked={quantityUnit === 'piece'}
+                    onChange={() => setQuantityUnit('piece')}
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      accentColor: '#667eea',
+                      cursor: 'pointer'
+                    }}
+                  />
+                  <span style={{ fontSize: '1rem', fontWeight: '500' }}>Piece</span>
+                </label>
+              </div>
+            </div>
           </div>
 
           {/* Customer Information Section */}
