@@ -729,6 +729,22 @@ function SpecsInput() {
   const [upgradesData, setUpgradesData] = useState({});
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [dataError, setDataError] = useState(null);
+  
+  // Edit functionality states
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isAddMode, setIsAddMode] = useState(false);
+  const [editingKey, setEditingKey] = useState(null);
+  const [newKeyName, setNewKeyName] = useState('');
+  const [newKeyValue, setNewKeyValue] = useState('');
+  const [isFinal, setIsFinal] = useState(false);
+  const [isUpgradesEditMode, setIsUpgradesEditMode] = useState(false);
+  const [isUpgradesAddMode, setIsUpgradesAddMode] = useState(false);
+  const [upgradesEditingKey, setUpgradesEditingKey] = useState(null);
+  const [upgradesNewKeyName, setUpgradesNewKeyName] = useState('');
+  const [upgradesNewKeyValue, setUpgradesNewKeyValue] = useState('');
+  const [upgradesIsFinal, setUpgradesIsFinal] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(null);
+  const [upgradesShowDropdown, setUpgradesShowDropdown] = useState(null);
 
   // Utility functions
   const formatSpecsPower = useCallback((input) => {
@@ -1742,6 +1758,9 @@ function SpecsInput() {
                 setLensModalPath([]);
                 setLensModalOptions(lensData);
                 setIsLensModalOpen(true);
+                setIsEditMode(false);
+                setIsAddMode(false);
+                setEditingKey(null);
               }}
               style={{ ...styles.button, ...styles.secondaryButton, marginTop: '10px' }}
             >
@@ -1753,6 +1772,9 @@ function SpecsInput() {
                 setUpgradesModalPath([]);
                 setUpgradesModalOptions(upgradesData);
                 setIsUpgradesModalOpen(true);
+                setIsUpgradesEditMode(false);
+                setIsUpgradesAddMode(false);
+                setUpgradesEditingKey(null);
               }}
               style={{ ...styles.button, ...styles.secondaryButton, marginTop: '10px', marginLeft: '10px' }}
             >
@@ -2032,28 +2054,79 @@ function SpecsInput() {
                 width: '90%',
               }}
             >
-              {/* Close button */}
-              <button
-                onClick={() => setIsLensModalOpen(false)}
-                style={{
-                  float: 'right',
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '20px',
-                  cursor: 'pointer',
-                }}
-              >
-                ×
-              </button>
+              {/* Top buttons */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  {/* <button
+                    onClick={() => {
+                      setIsAddMode(true);
+                      setIsEditMode(false);
+                      setEditingKey(null);
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      marginRight: '10px',
+                    }}
+                  >
+                    Add
+                  </button> */}
+                  {/* <button
+                    onClick={() => {
+                      if (isEditMode) {
+                        setIsEditMode(false);
+                        setEditingKey(null);
+                        setIsAddMode(false);
+                      } else {
+                        setIsEditMode(true);
+                        setIsAddMode(false);
+                      }
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: isEditMode ? '#dc3545' : '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {isEditMode ? 'Cancel Edit' : 'Edit'}
+                  </button> */}
+                </div>
+                <button
+                  onClick={() => {
+                    setIsLensModalOpen(false);
+                    setIsEditMode(false);
+                    setIsAddMode(false);
+                    setEditingKey(null);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '20px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  ×
+                </button>
+              </div>
 
               {/* Breadcrumbs */}
-              <div style={{ marginBottom: '20px', clear: 'both' }}>
+              <div style={{ marginBottom: '20px' }}>
                 <strong>Breadcrumbs: </strong>
                 <span
                   style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}
                   onClick={() => {
                     setLensModalPath([]);
                     setLensModalOptions(lensData);
+                    setIsEditMode(false);
+                    setIsAddMode(false);
+                    setEditingKey(null);
                   }}
                 >
                   Brands
@@ -2071,12 +2144,36 @@ function SpecsInput() {
                           current = current[p];
                         }
                         setLensModalOptions(current);
+                        setIsEditMode(false);
+                        setIsAddMode(false);
+                        setEditingKey(null);
                       }}
                     >
                       {part}
                     </span>
                   </span>
                 ))}
+              </div>
+
+              {/* Add button */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+                <button
+                  onClick={() => {
+                    setIsAddMode(true);
+                    setIsEditMode(false);
+                    setEditingKey(null);
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Add
+                </button>
               </div>
 
               {/* Back button */}
@@ -2090,6 +2187,9 @@ function SpecsInput() {
                       current = current[p];
                     }
                     setLensModalOptions(current);
+                    setIsEditMode(false);
+                    setIsAddMode(false);
+                    setEditingKey(null);
                   }}
                   style={{
                     padding: '10px',
@@ -2107,34 +2207,289 @@ function SpecsInput() {
 
               {/* Options */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {Object.keys(lensModalOptions).map(key => (
-                  <button
-                    key={key}
-                    onClick={() => {
-                      const value = lensModalOptions[key];
-                      if (typeof value === 'string') {
-                        // Terminal option
-                        updateField('lensDescription', value);
-                        setIsLensModalOpen(false);
-                      } else {
-                        // Go deeper
-                        setLensModalPath([...lensModalPath, key]);
-                        setLensModalOptions(value);
-                      }
-                    }}
-                    style={{
-                      padding: '20px',
-                      fontSize: '18px',
-                      backgroundColor: '#f0f0f0',
-                      border: '1px solid #ccc',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {key}
-                  </button>
+                {Object.keys(lensModalOptions).sort((a, b) => a.localeCompare(b)).map(key => (
+                  <div key={key} style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => {
+                        if (isEditMode) {
+                          setEditingKey(key);
+                          setNewKeyName(key);
+                          const value = lensModalOptions[key];
+                          if (typeof value === 'string') {
+                            setNewKeyValue(value);
+                            setIsFinal(true);
+                          } else {
+                            setNewKeyValue('');
+                            setIsFinal(false);
+                          }
+                        } else {
+                          const value = lensModalOptions[key];
+                          if (typeof value === 'string') {
+                            updateField('lensDescription', value);
+                            setIsLensModalOpen(false);
+                          } else {
+                            setLensModalPath([...lensModalPath, key]);
+                            setLensModalOptions(value);
+                          }
+                        }
+                      }}
+                      style={{
+                        padding: '20px',
+                        fontSize: '18px',
+                        backgroundColor: editingKey === key ? '#ffffcc' : '#f0f0f0',
+                        border: editingKey === key ? '2px solid #007bff' : '1px solid #ccc',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        width: '100%',
+                        textAlign: 'left',
+                        position: 'relative',
+                      }}
+                    >
+                      {key}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDropdown(showDropdown === key ? null : key);
+                      }}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: showDropdown === key ? '#82827fff' : 'none',
+                        border: showDropdown === key ? '2px solid #007bff' : 'none',
+                        fontSize: '16px',
+                        cursor: 'pointer',
+                        padding: '5px',
+                      }}
+                    >
+                      ⋯
+                    </button>
+                    {showDropdown === key && (
+                      <div style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '100%',
+                        backgroundColor: 'white',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                        zIndex: 1001,
+                      }}>
+                        <button
+                          onClick={() => {
+                            setEditingKey(key);
+                            setNewKeyName(key);
+                            const value = lensModalOptions[key];
+                            if (typeof value === 'string') {
+                              setNewKeyValue(value);
+                              setIsFinal(true);
+                            } else {
+                              setNewKeyValue('');
+                              setIsFinal(false);
+                            }
+                            setShowDropdown(null);
+                          }}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '8px 16px',
+                            border: 'none',
+                            background: 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Edit
+                        </button>
+                        {/* <button
+                          onClick={async () => {
+                            if (window.confirm(`Delete "${key}"?`)) {
+                              try {
+                                console.log('Delete attempt:', { key, lensModalPath, lensData });
+                                
+                                if (lensModalPath.length === 0) {
+                                  // Delete entire brand
+                                  console.log('Deleting brand:', key);
+                                  await lensDataService.deleteLensData(key);
+                                } else {
+                                  // Delete nested item
+                                  const brandName = lensModalPath[0];
+                                  console.log('Deleting nested item:', { brandName, key, path: lensModalPath });
+                                  
+                                  let updatedStructure = JSON.parse(JSON.stringify(lensData[brandName]));
+                                  let current = updatedStructure;
+                                  
+                                  // Navigate to parent of item to delete
+                                  for (let i = 1; i < lensModalPath.length; i++) {
+                                    current = current[lensModalPath[i]];
+                                  }
+                                  
+                                  delete current[key];
+                                  console.log('Updated structure:', updatedStructure);
+                                  
+                                  await lensDataService.updateLensData(brandName, updatedStructure);
+                                }
+                                
+                                // Refresh data
+                                const updatedData = await lensDataService.getLensData();
+                                setLensData(updatedData);
+                                
+                                // Update modal options
+                                if (lensModalPath.length === 0) {
+                                  setLensModalOptions(updatedData);
+                                } else {
+                                  let newCurrent = updatedData;
+                                  for (const p of lensModalPath) {
+                                    newCurrent = newCurrent[p];
+                                  }
+                                  setLensModalOptions(newCurrent);
+                                }
+                                
+                                console.log('Delete successful');
+                              } catch (error) {
+                                console.error('Delete error:', error);
+                                alert('Error deleting: ' + error.message);
+                              }
+                            }
+                            setShowDropdown(null);
+                          }}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '8px 16px',
+                            border: 'none',
+                            background: 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            color: '#dc3545',
+                          }}
+                        >
+                          Delete
+                        </button> */}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
+
+              {/* Add/Edit Form */}
+              {(isAddMode || editingKey) && (
+                <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                  <h4>{editingKey ? 'Edit Item' : 'Add New Item'}</h4>
+                  
+                  {lensModalPath.length === 0 && isAddMode && (
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Brand Name"
+                        value={newKeyName}
+                        onChange={(e) => setNewKeyName(e.target.value)}
+                        style={{ width: '100%', padding: '8px', marginBottom: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
+                      />
+                      <button
+                        onClick={async () => {
+                          if (newKeyName.trim()) {
+                            try {
+                              await lensDataService.addLensData(newKeyName.trim(), {});
+                              const updatedData = await lensDataService.getLensData();
+                              setLensData(updatedData);
+                              setLensModalOptions(updatedData);
+                              setNewKeyName('');
+                              setIsAddMode(false);
+                            } catch (error) {
+                              alert('Error adding brand: ' + error.message);
+                            }
+                          }
+                        }}
+                        style={{ padding: '8px 16px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  )}
+                  
+                  {lensModalPath.length > 0 && (isAddMode || editingKey) && (
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Key Name"
+                        value={newKeyName}
+                        onChange={(e) => setNewKeyName(e.target.value)}
+                        style={{ width: '100%', padding: '8px', marginBottom: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
+                      />
+                      <div style={{ marginBottom: '10px' }}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={isFinal}
+                            onChange={(e) => setIsFinal(e.target.checked)}
+                            style={{ marginRight: '8px' }}
+                          />
+                          Is Final
+                        </label>
+                      </div>
+                      {isFinal && (
+                        <input
+                          type="text"
+                          placeholder="Value"
+                          value={newKeyValue}
+                          onChange={(e) => setNewKeyValue(e.target.value)}
+                          style={{ width: '100%', padding: '8px', marginBottom: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
+                        />
+                      )}
+                      <button
+                        onClick={async () => {
+                          if (newKeyName.trim()) {
+                            try {
+                              const brandName = lensModalPath[0];
+                              let updatedStructure = { ...lensData[brandName] };
+                              
+                              // Navigate to the correct nested level
+                              let current = updatedStructure;
+                              for (let i = 1; i < lensModalPath.length; i++) {
+                                current = current[lensModalPath[i]];
+                              }
+                              
+                              if (editingKey) {
+                                // Update existing key
+                                delete current[editingKey];
+                                current[newKeyName.trim()] = isFinal ? newKeyValue : {};
+                              } else {
+                                // Add new key
+                                current[newKeyName.trim()] = isFinal ? newKeyValue : {};
+                              }
+                              
+                              await lensDataService.updateLensData(brandName, updatedStructure);
+                              const updatedData = await lensDataService.getLensData();
+                              setLensData(updatedData);
+                              
+                              // Update current modal options
+                              let newCurrent = updatedData;
+                              for (const p of lensModalPath) {
+                                newCurrent = newCurrent[p];
+                              }
+                              setLensModalOptions(newCurrent);
+                              
+                              setNewKeyName('');
+                              setNewKeyValue('');
+                              setIsFinal(false);
+                              setIsAddMode(false);
+                              setEditingKey(null);
+                            } catch (error) {
+                              alert('Error saving: ' + error.message);
+                            }
+                          }
+                        }}
+                        style={{ padding: '8px 16px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        {editingKey ? 'Update' : 'Save'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -2166,28 +2521,79 @@ function SpecsInput() {
                 width: '90%',
               }}
             >
-              {/* Close button */}
-              <button
-                onClick={() => setIsUpgradesModalOpen(false)}
-                style={{
-                  float: 'right',
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '20px',
-                  cursor: 'pointer',
-                }}
-              >
-                ×
-              </button>
+              {/* Top buttons */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  {/* <button
+                    onClick={() => {
+                      setIsUpgradesAddMode(true);
+                      setIsUpgradesEditMode(false);
+                      setUpgradesEditingKey(null);
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      marginRight: '10px',
+                    }}
+                  >
+                    Add
+                  </button> */}
+                  {/* <button
+                    onClick={() => {
+                      if (isUpgradesEditMode) {
+                        setIsUpgradesEditMode(false);
+                        setUpgradesEditingKey(null);
+                        setIsUpgradesAddMode(false);
+                      } else {
+                        setIsUpgradesEditMode(true);
+                        setIsUpgradesAddMode(false);
+                      }
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: isUpgradesEditMode ? '#dc3545' : '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {isUpgradesEditMode ? 'Cancel Edit' : 'Edit'}
+                  </button> */}
+                </div>
+                <button
+                  onClick={() => {
+                    setIsUpgradesModalOpen(false);
+                    setIsUpgradesEditMode(false);
+                    setIsUpgradesAddMode(false);
+                    setUpgradesEditingKey(null);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '20px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  ×
+                </button>
+              </div>
 
               {/* Breadcrumbs */}
-              <div style={{ marginBottom: '20px', clear: 'both' }}>
+              <div style={{ marginBottom: '20px' }}>
                 <strong>Breadcrumbs: </strong>
                 <span
                   style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}
                   onClick={() => {
                     setUpgradesModalPath([]);
                     setUpgradesModalOptions(upgradesData);
+                    setIsUpgradesEditMode(false);
+                    setIsUpgradesAddMode(false);
+                    setUpgradesEditingKey(null);
                   }}
                 >
                   Brands
@@ -2205,12 +2611,36 @@ function SpecsInput() {
                           current = current[p];
                         }
                         setUpgradesModalOptions(current);
+                        setIsUpgradesEditMode(false);
+                        setIsUpgradesAddMode(false);
+                        setUpgradesEditingKey(null);
                       }}
                     >
                       {part}
                     </span>
                   </span>
                 ))}
+              </div>
+
+              {/* Add button */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+                <button
+                  onClick={() => {
+                    setIsUpgradesAddMode(true);
+                    setIsUpgradesEditMode(false);
+                    setUpgradesEditingKey(null);
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Add
+                </button>
               </div>
 
               {/* Back button */}
@@ -2224,6 +2654,9 @@ function SpecsInput() {
                       current = current[p];
                     }
                     setUpgradesModalOptions(current);
+                    setIsUpgradesEditMode(false);
+                    setIsUpgradesAddMode(false);
+                    setUpgradesEditingKey(null);
                   }}
                   style={{
                     padding: '10px',
@@ -2241,36 +2674,291 @@ function SpecsInput() {
 
               {/* Options */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {Object.keys(upgradesModalOptions).map(key => (
-                  <button
-                    key={key}
-                    onClick={() => {
-                      const value = upgradesModalOptions[key];
-                      if (typeof value === 'string') {
-                        // Terminal option - append to lens description
-                        const currentDesc = formData.lensDescription || '';
-                        const newDesc = currentDesc ? `${currentDesc} ${value}` : value;
-                        updateField('lensDescription', newDesc);
-                        setIsUpgradesModalOpen(false);
-                      } else {
-                        // Go deeper
-                        setUpgradesModalPath([...upgradesModalPath, key]);
-                        setUpgradesModalOptions(value);
-                      }
-                    }}
-                    style={{
-                      padding: '20px',
-                      fontSize: '18px',
-                      backgroundColor: '#f0f0f0',
-                      border: '1px solid #ccc',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {key}
-                  </button>
+                {Object.keys(upgradesModalOptions).sort((a, b) => a.localeCompare(b)).map(key => (
+                  <div key={key} style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => {
+                        if (isUpgradesEditMode) {
+                          setUpgradesEditingKey(key);
+                          setUpgradesNewKeyName(key);
+                          const value = upgradesModalOptions[key];
+                          if (typeof value === 'string') {
+                            setUpgradesNewKeyValue(value);
+                            setUpgradesIsFinal(true);
+                          } else {
+                            setUpgradesNewKeyValue('');
+                            setUpgradesIsFinal(false);
+                          }
+                        } else {
+                          const value = upgradesModalOptions[key];
+                          if (typeof value === 'string') {
+                            const currentDesc = formData.lensDescription || '';
+                            const newDesc = currentDesc ? `${currentDesc} ${value}` : value;
+                            updateField('lensDescription', newDesc);
+                            setIsUpgradesModalOpen(false);
+                          } else {
+                            setUpgradesModalPath([...upgradesModalPath, key]);
+                            setUpgradesModalOptions(value);
+                          }
+                        }
+                      }}
+                      style={{
+                        padding: '20px',
+                        fontSize: '18px',
+                        backgroundColor: upgradesEditingKey === key ? '#ffffcc' : '#f0f0f0',
+                        border: upgradesEditingKey === key ? '2px solid #007bff' : '1px solid #ccc',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        width: '100%',
+                        textAlign: 'left',
+                        position: 'relative',
+                      }}
+                    >
+                      {key}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setUpgradesShowDropdown(upgradesShowDropdown === key ? null : key);
+                      }}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: upgradesShowDropdown === key ? '#82827fff' : 'none',
+                        border: upgradesShowDropdown === key ? '2px solid #007bff' : 'none',
+                        fontSize: '16px',
+                        cursor: 'pointer',
+                        padding: '5px',
+                      }}
+                    >
+                      ⋯
+                    </button>
+                    {upgradesShowDropdown === key && (
+                      <div style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '100%',
+                        backgroundColor: 'white',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                        zIndex: 1001,
+                      }}>
+                        <button
+                          onClick={() => {
+                            setUpgradesEditingKey(key);
+                            setUpgradesNewKeyName(key);
+                            const value = upgradesModalOptions[key];
+                            if (typeof value === 'string') {
+                              setUpgradesNewKeyValue(value);
+                              setUpgradesIsFinal(true);
+                            } else {
+                              setUpgradesNewKeyValue('');
+                              setUpgradesIsFinal(false);
+                            }
+                            setUpgradesShowDropdown(null);
+                          }}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '8px 16px',
+                            border: 'none',
+                            background: 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Edit
+                        </button>
+                        {/* <button
+                          onClick={async () => {
+                            if (window.confirm(`Delete "${key}"?`)) {
+                              try {
+                                console.log('Delete attempt:', { key, upgradesModalPath, upgradesData });
+                                
+                                if (upgradesModalPath.length === 0) {
+                                  // Delete entire brand
+                                  console.log('Deleting brand:', key);
+                                  await lensDataService.deleteUpgradesData(key);
+                                } else {
+                                  // Delete nested item
+                                  const brandName = upgradesModalPath[0];
+                                  console.log('Deleting nested item:', { brandName, key, path: upgradesModalPath });
+                                  
+                                  let updatedStructure = JSON.parse(JSON.stringify(upgradesData[brandName]));
+                                  let current = updatedStructure;
+                                  
+                                  // Navigate to parent of item to delete
+                                  for (let i = 1; i < upgradesModalPath.length; i++) {
+                                    current = current[upgradesModalPath[i]];
+                                  }
+                                  
+                                  delete current[key];
+                                  console.log('Updated structure:', updatedStructure);
+                                  
+                                  await lensDataService.updateUpgradesData(brandName, updatedStructure);
+                                }
+                                
+                                // Refresh data
+                                const updatedData = await lensDataService.getUpgradesData();
+                                setUpgradesData(updatedData);
+                                
+                                // Update modal options
+                                if (upgradesModalPath.length === 0) {
+                                  setUpgradesModalOptions(updatedData);
+                                } else {
+                                  let newCurrent = updatedData;
+                                  for (const p of upgradesModalPath) {
+                                    newCurrent = newCurrent[p];
+                                  }
+                                  setUpgradesModalOptions(newCurrent);
+                                }
+                                
+                                console.log('Delete successful');
+                              } catch (error) {
+                                console.error('Delete error:', error);
+                                alert('Error deleting: ' + error.message);
+                              }
+                            }
+                            setUpgradesShowDropdown(null);
+                          }}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '8px 16px',
+                            border: 'none',
+                            background: 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            color: '#dc3545',
+                          }}
+                        >
+                          Delete
+                        </button> */}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
+
+              {/* Add/Edit Form */}
+              {(isUpgradesAddMode || upgradesEditingKey) && (
+                <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                  <h4>{upgradesEditingKey ? 'Edit Item' : 'Add New Item'}</h4>
+                  
+                  {upgradesModalPath.length === 0 && isUpgradesAddMode && (
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Brand Name"
+                        value={upgradesNewKeyName}
+                        onChange={(e) => setUpgradesNewKeyName(e.target.value)}
+                        style={{ width: '100%', padding: '8px', marginBottom: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
+                      />
+                      <button
+                        onClick={async () => {
+                          if (upgradesNewKeyName.trim()) {
+                            try {
+                              await lensDataService.addUpgradesData(upgradesNewKeyName.trim(), {});
+                              const updatedData = await lensDataService.getUpgradesData();
+                              setUpgradesData(updatedData);
+                              setUpgradesModalOptions(updatedData);
+                              setUpgradesNewKeyName('');
+                              setIsUpgradesAddMode(false);
+                            } catch (error) {
+                              alert('Error adding brand: ' + error.message);
+                            }
+                          }
+                        }}
+                        style={{ padding: '8px 16px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  )}
+                  
+                  {upgradesModalPath.length > 0 && (isUpgradesAddMode || upgradesEditingKey) && (
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Key Name"
+                        value={upgradesNewKeyName}
+                        onChange={(e) => setUpgradesNewKeyName(e.target.value)}
+                        style={{ width: '100%', padding: '8px', marginBottom: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
+                      />
+                      <div style={{ marginBottom: '10px' }}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={upgradesIsFinal}
+                            onChange={(e) => setUpgradesIsFinal(e.target.checked)}
+                            style={{ marginRight: '8px' }}
+                          />
+                          Is Final
+                        </label>
+                      </div>
+                      {upgradesIsFinal && (
+                        <input
+                          type="text"
+                          placeholder="Value"
+                          value={upgradesNewKeyValue}
+                          onChange={(e) => setUpgradesNewKeyValue(e.target.value)}
+                          style={{ width: '100%', padding: '8px', marginBottom: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
+                        />
+                      )}
+                      <button
+                        onClick={async () => {
+                          if (upgradesNewKeyName.trim()) {
+                            try {
+                              const brandName = upgradesModalPath[0];
+                              let updatedStructure = { ...upgradesData[brandName] };
+                              
+                              // Navigate to the correct nested level
+                              let current = updatedStructure;
+                              for (let i = 1; i < upgradesModalPath.length; i++) {
+                                current = current[upgradesModalPath[i]];
+                              }
+                              
+                              if (upgradesEditingKey) {
+                                // Update existing key
+                                delete current[upgradesEditingKey];
+                                current[upgradesNewKeyName.trim()] = upgradesIsFinal ? upgradesNewKeyValue : {};
+                              } else {
+                                // Add new key
+                                current[upgradesNewKeyName.trim()] = upgradesIsFinal ? upgradesNewKeyValue : {};
+                              }
+                              
+                              await lensDataService.updateUpgradesData(brandName, updatedStructure);
+                              const updatedData = await lensDataService.getUpgradesData();
+                              setUpgradesData(updatedData);
+                              
+                              // Update current modal options
+                              let newCurrent = updatedData;
+                              for (const p of upgradesModalPath) {
+                                newCurrent = newCurrent[p];
+                              }
+                              setUpgradesModalOptions(newCurrent);
+                              
+                              setUpgradesNewKeyName('');
+                              setUpgradesNewKeyValue('');
+                              setUpgradesIsFinal(false);
+                              setIsUpgradesAddMode(false);
+                              setUpgradesEditingKey(null);
+                            } catch (error) {
+                              alert('Error saving: ' + error.message);
+                            }
+                          }
+                        }}
+                        style={{ padding: '8px 16px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        {upgradesEditingKey ? 'Update' : 'Save'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
