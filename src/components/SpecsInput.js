@@ -1145,6 +1145,18 @@ function SpecsInput() {
       canvas.width = 800;
       canvas.height = 900;
 
+      const numDescLines = divideDescription(data.lensDescription, 35).length;
+      
+      if (data.urgent) {
+        if (numDescLines > 3) {
+          canvas.height += scaleValue((numDescLines - 3) * 70);
+        }
+      } else {
+        if (numDescLines > 4) {
+          canvas.height += scaleValue((numDescLines - 4) * 70);
+        }
+      }
+
       context.fillStyle = data.urgent ? "#FFE6E6" : "#FFFFFF";
       context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1177,7 +1189,7 @@ function SpecsInput() {
       if (branchName) {
         setFont(20);
         context.fillStyle = "#666666";
-        context.fillText(`Branch: ${branchName.toUpperCase()}`, 50, yPosition);
+        context.fillText(`Branch: ${branchName.toUpperCase()}`, 51, yPosition);
         yPosition += lineHeight;
         context.fillStyle = "#000000";
       }
@@ -1185,12 +1197,28 @@ function SpecsInput() {
       if (data.jobCard) {
         setFont(20);
         context.fillStyle = "#333333";
-        context.fillText(`Job Card: ${data.jobCard}`, 50, yPosition);
+        context.fillText(`Job Card: ${data.jobCard}`, 51, yPosition);
         yPosition += lineHeight;
         context.fillStyle = "#000000";
       }
 
-      yPosition += lineHeight / 2;
+      if (data.customerName) {
+        yPosition += lineHeight / 13;
+        setFont(24, { weight: "bold" });
+        context.fillText(`Customer: ${data.customerName}`, 50, yPosition);
+        yPosition += lineHeight;
+      }
+
+      yPosition -= lineHeight / 2;
+
+      context.beginPath();
+      context.moveTo(50, yPosition);
+      context.lineTo(750, yPosition);
+      context.strokeStyle = "#CCCCCC";
+      context.stroke();
+      context.strokeStyle = "#000000";
+      
+      yPosition += lineHeight * 1.5;
 
       setFont(24, { weight: "bold" });
       context.fillText("POWER SPECIFICATIONS", 50, yPosition);
@@ -1200,14 +1228,14 @@ function SpecsInput() {
       context.fillStyle = "#444444";
       context.fillText("Eye", 50, yPosition);
       context.fillText("Spherical", 180, yPosition);
-      context.fillText("Cylindrical", 320, yPosition);
+      context.fillText("Cylindrical", 329, yPosition);
       context.fillText("Axis", 480, yPosition);
       yPosition += tableSpacing * lineHeight;
 
       context.fillStyle = "#000000";
       setFont(22);
 
-      const drawCell = (text, x, y, isError = false) => {
+      const drawCell = (text, x, y, isError = false, isCylinderField = false) => {
         if (isError) {
           context.fillStyle = "#FFCCCC";
           context.fillRect(x - cellPaddingX, y - cellOffsetY, cellWidth, cellHeight);
@@ -1216,13 +1244,18 @@ function SpecsInput() {
           context.fillStyle = "#000000";
           context.strokeStyle = "#000000";
         }
-
-        context.fillText(text || "-", x, y);
+        if (isCylinderField) {
+          context.fillText(`${text} Cyl` || "-", x, y);
+        } else {
+          context.fillText(text || "-", x, y);
+        }  
       };
 
       const displayData = computePowerDisplay(data, {
         mode: selectedMode,
         transpose: shouldTranspose,
+        rightTranspose: false,
+        leftTranspose: false,
       });
 
       const rowsToRender = displayData?.rows ?? [];
@@ -1235,7 +1268,7 @@ function SpecsInput() {
 
         context.fillText(label, 50, yPosition);
         drawCell(spherical, 180, yPosition);
-        drawCell(cylindrical, 320, yPosition);
+        drawCell(cylindrical, 320, yPosition, false, true);
         drawCell(axis, 480, yPosition, axisError);
         yPosition += tableSpacing * lineHeight;
         renderedPowerRows += 1;
@@ -1294,34 +1327,30 @@ function SpecsInput() {
           context.fillText(line, 50, yPosition);
           yPosition += lineHeight;
         });
-        yPosition += lineHeight / 2;
+        yPosition += lineHeight / 20;
       }
 
       // Display Quantity Information with highlighting
       if (data.quantity && data.quantityUnit) {
         setFont(20, { weight: "bold" });
-        context.fillStyle = "#667eea"; // Highlight color
+        context.fillStyle = "#0831e5"; // Highlight color
         context.fillText(`Quantity: ${getQuantityLabel(data.quantity)} ${getQuantityUnitLabel(data.quantityUnit, data.quantity)}`, 50, yPosition);
         yPosition += lineHeight;
         context.fillStyle = "#000000"; // Reset to black
       }
 
       setFont(18);
-      if (data.customerName) {
-        context.fillText(`Customer: ${data.customerName}`, 50, yPosition);
-        yPosition += lineHeight;
-      }
 
       if (data.supplierName) {
         context.fillText(`Supplier: ${data.supplierName}`, 50, yPosition);
         yPosition += lineHeight;
       }
 
-      yPosition = canvas.height - scaleValue(40);
+      yPosition = canvas.height - scaleValue(15);
       setFont(14);
       context.fillStyle = "#888888";
       const timestamp = new Date().toLocaleString();
-      context.fillText(`Generated on: ${timestamp}`, 50, yPosition);
+      context.fillText(`Generated on: ${timestamp}`, 490, yPosition);
 
       return new Promise((resolve) => {
         canvas.toBlob((blob) => {
@@ -1352,6 +1381,17 @@ function SpecsInput() {
     setDisplayMode(mode);
     await generateImage(lastGeneratedData, { mode, transpose: isTranspose, showLoading: false });
   }, [lastGeneratedData, displayMode, isTranspose, generateImage]);
+
+  const handlePartialTranspose = useCallback(async (side) => {
+
+    await generateImage(lastGeneratedData, {
+      mode: displayMode,
+      rightTranspose: side === 'right' ? true : false,
+      leftTranspose: side === 'left' ? true : false,
+      // transpose: nextTranspose,
+      showLoading: false,
+    });
+  }, [isTranspose, lastGeneratedData, displayMode, generateImage]);
 
   const handleTransposeToggle = useCallback(async () => {
     const nextTranspose = !isTranspose;
@@ -2191,6 +2231,15 @@ function SpecsInput() {
                 }}
               >
                 {TRANSPOSE_LABEL}
+              </button>
+              <button
+                type="button"
+                onClick={handleTransposeToggle}
+                style={{
+                  ...styles.transposeButton,
+                }}
+              >
+                Transpose Right
               </button>
             </div>
             <div style={{ marginTop: '15px', fontSize: '0.9rem', color: '#6c757d' }}>
